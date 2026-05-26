@@ -1,41 +1,54 @@
 # NullCloud - backend
 
-NullCloud is a fake cloud service provider. Although you can provision resources through its API, the resources do not really exist. NullCloud backend and its terraform provider are useful to build demonstrations, run tests. It behaves as a real cloud service provider but with no real cloud resources.
+A fake cloud provider API — provision VPCs, subnets, and virtual server instances without any real infrastructure. Useful for demos, tests, and Terraform provider development.
 
-## About
+## Resources
 
-* Backend server for NullCloud.
-* It implements the NullCloud API.
-* It is written in Go.
-* It can run on macOS, Linux, Windows
+- VPC
+- Subnet
+- Virtual Server Instance (VSI)
 
-## Supported resources
+## Auth
 
-NullCloud supports the following resources:
-* VPC - virtual private cloud
-* Subnet
-* Virtual server instance
-
-## API
-
-NullCloud exposes REST APIs for its supported resources.
-* NullCloud REST APIs require the use of an Authorization token
-* The token can be any string, but can not be empty
-* Resources will be linked to the given token
-* Two different tokens do not see each other resources
+All requests require an `Authorization` header. Any non-empty string works. Resources are scoped to the token — different tokens are isolated from each other.
 
 ## Persistence
 
-NullCloud API state is persisted with every write. The backend offers different persistent mode:
-* in-memory (useful for testing) - the default if no other persistent mode specified
-* JSON file-based - the destination file is passed during launched as a command line parameter to the backend
+| Mode | Flag | Notes |
+|------|------|-------|
+| In-memory | _(default)_ | State lost on restart |
+| JSON file | `--store-file <path>` | State persisted to disk |
 
-API implementation does not know which persistent mode is used so an abstraction of the storage exists.
+## Run
+
+```sh
+# In-memory (default)
+./nullcloud-backend
+
+# With file persistence
+./nullcloud-backend --store-file store.json
+
+# Custom port (default: 8080)
+./nullcloud-backend --port 9090
+```
 
 ## Build
 
-Use the provided Dockerfile to compile the backend.
+```sh
+make build        # all platforms → dist/
+make build-linux_amd64  # single platform
+```
 
 ## Test
 
-Use the provider Dockerfile to compile and run the tests.
+```sh
+make test
+```
+
+## Release
+
+Push a tag to trigger a GitHub Actions release with pre-built binaries for Linux, macOS, and Windows (amd64/arm64).
+
+```sh
+git tag v1.0.0 && git push origin v1.0.0
+```
