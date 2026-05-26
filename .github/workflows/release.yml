@@ -26,36 +26,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
 
-      - name: Build all platforms
-        env:
-          VERSION: ${{ github.ref_name }}
-        run: |
-          BINARY_BASE=nullcloud-backend
-          mkdir -p dist
-
-          build() {
-            local GOOS=$1 GOARCH=$2
-            local EXT=""
-            [ "$GOOS" = "windows" ] && EXT=".exe"
-            echo "→ $GOOS/$GOARCH"
-            GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=0 \
-              go build -trimpath \
-                -ldflags "-X main.version=${VERSION}" \
-                -o "dist/${BINARY_BASE}_${VERSION}_${GOOS}_${GOARCH}${EXT}" .
-          }
-
-          build darwin  amd64
-          build darwin  arm64
-          build linux   amd64
-          build linux   arm64
-          build windows amd64
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
         with:
-          files: dist/*
-          generate_release_notes: true
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
