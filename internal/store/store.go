@@ -23,4 +23,5 @@ type Store interface {
 	GetVSI(ctx context.Context, token, id string) (model.VSI, bool, error)
 	ListVSIs(ctx context.Context, token string) ([]model.VSI, error)
 	DeleteVSI(ctx context.Context, token, id string) error
+	UpdateVSIStatus(ctx context.Context, token, id, status string) error
 }

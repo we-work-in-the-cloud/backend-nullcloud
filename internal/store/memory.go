@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/we-work-in-the-cloud/nullcloud/backend/internal/model"
@@ -124,5 +125,17 @@ func (s *MemoryStore) DeleteVSI(_ context.Context, token, id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.vsis[token], id)
+	return nil
+}
+
+func (s *MemoryStore) UpdateVSIStatus(_ context.Context, token, id, status string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.vsis[token][id]
+	if !ok {
+		return fmt.Errorf("VSI %s not found", id)
+	}
+	v.Status = status
+	s.vsis[token][id] = v
 	return nil
 }

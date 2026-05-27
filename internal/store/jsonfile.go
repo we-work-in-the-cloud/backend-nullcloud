@@ -167,3 +167,15 @@ func (s *JSONFileStore) DeleteVSI(_ context.Context, token, id string) error {
 	delete(s.data.VSIs[token], id)
 	return s.flush()
 }
+
+func (s *JSONFileStore) UpdateVSIStatus(_ context.Context, token, id, status string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.data.VSIs[token][id]
+	if !ok {
+		return fmt.Errorf("VSI %s not found", id)
+	}
+	v.Status = status
+	s.data.VSIs[token][id] = v
+	return s.flush()
+}
