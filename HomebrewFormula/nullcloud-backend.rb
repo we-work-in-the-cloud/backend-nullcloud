@@ -5,20 +5,20 @@
 class NullcloudBackend < Formula
   desc "NullCloud backend server"
   homepage "https://github.com/we-work-in-the-cloud/backend-nullcloud"
-  version "0.1.0"
+  version "0.2.0"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v0.1.0/nullcloud-backend_v0.1.0_darwin_amd64.tar.gz"
-      sha256 "58a967d9c688d06c81dbc8c8e07d84a263333ca54a350d642890717d62a40ba9"
+      url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v0.2.0/nullcloud-backend_v0.2.0_darwin_amd64.tar.gz"
+      sha256 "a90ce32db7468f689db907d643e15f7c4592684d735741be72b0767ca10f870f"
 
       define_method(:install) do
         bin.install "nullcloud-backend"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v0.1.0/nullcloud-backend_v0.1.0_darwin_arm64.tar.gz"
-      sha256 "eb8eb91a770d4dbd28f802787c8e774a6759c4172c7e7c55f6576133429d732f"
+      url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v0.2.0/nullcloud-backend_v0.2.0_darwin_arm64.tar.gz"
+      sha256 "64c7fb2baa2c8e317de343e7341f895f75bdb822d5173ff2bd36bbf6664a3b32"
 
       define_method(:install) do
         bin.install "nullcloud-backend"
@@ -28,15 +28,15 @@ class NullcloudBackend < Formula
 
   on_linux do
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-      url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v0.1.0/nullcloud-backend_v0.1.0_linux_amd64.tar.gz"
-      sha256 "ba034e9c0a2bc010a0cb0f27fb11c341245ad0b289f0696c3276aa590bbdfd4d"
+      url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v0.2.0/nullcloud-backend_v0.2.0_linux_amd64.tar.gz"
+      sha256 "956a667a2e1b71379c2d79c995203fd8e95cc4db3138943d7321e97d0a22465e"
       define_method(:install) do
         bin.install "nullcloud-backend"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v0.1.0/nullcloud-backend_v0.1.0_linux_arm64.tar.gz"
-      sha256 "27899c234664fbd96ce7ac079b5e9b7cec0e3d326a3bb7c0ae002286a493d330"
+      url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v0.2.0/nullcloud-backend_v0.2.0_linux_arm64.tar.gz"
+      sha256 "f79031958e4833eb9e884dcfebeaf4f7ccd1ee3cc60b89e5b29223b987a2b1ab"
       define_method(:install) do
         bin.install "nullcloud-backend"
       end
