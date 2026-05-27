@@ -108,3 +108,24 @@ func TestMemoryStore_VSILifecycle(t *testing.T) {
 		t.Fatal("expected deleted")
 	}
 }
+
+func TestMemoryStore_UpdateVSIStatus(t *testing.T) {
+	s := store.NewMemoryStore()
+	ctx := context.Background()
+	token := "tok1"
+
+	vsi := model.VSI{ID: "vsi-1", Name: "v1", Status: "running", CreatedAt: time.Now()}
+	s.CreateVSI(ctx, token, vsi)
+
+	if err := s.UpdateVSIStatus(ctx, token, "vsi-1", "stopped"); err != nil {
+		t.Fatal(err)
+	}
+	got, _, _ := s.GetVSI(ctx, token, "vsi-1")
+	if got.Status != "stopped" {
+		t.Fatalf("expected stopped, got %q", got.Status)
+	}
+
+	if err := s.UpdateVSIStatus(ctx, token, "nonexistent", "running"); err == nil {
+		t.Fatal("expected error for missing VSI")
+	}
+}

@@ -11,7 +11,7 @@ import (
 )
 
 func TestVPC_MissingAuth(t *testing.T) {
-	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore()))
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
 	defer srv.Close()
 
 	resp := doRequest(t, "GET", srv.URL+"/v1/vpcs", "", "")
@@ -19,7 +19,7 @@ func TestVPC_MissingAuth(t *testing.T) {
 }
 
 func TestVPC_Lifecycle(t *testing.T) {
-	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore()))
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
 	defer srv.Close()
 
 	token := "test-token"
@@ -70,7 +70,7 @@ func TestVPC_Lifecycle(t *testing.T) {
 }
 
 func TestVPC_Create_BadRequest(t *testing.T) {
-	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore()))
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
 	defer srv.Close()
 
 	token := "test-token"
@@ -86,7 +86,7 @@ func TestVPC_Create_BadRequest(t *testing.T) {
 }
 
 func TestVPC_Delete_NotFound(t *testing.T) {
-	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore()))
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
 	defer srv.Close()
 
 	resp := doRequest(t, "DELETE", srv.URL+"/v1/vpcs/nonexistent", "tok", "")

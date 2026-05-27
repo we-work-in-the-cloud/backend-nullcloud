@@ -12,7 +12,7 @@ import (
 )
 
 func TestVSI_MissingAuth(t *testing.T) {
-	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore()))
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
 	defer srv.Close()
 
 	resp := doRequest(t, "GET", srv.URL+"/v1/instances", "", "")
@@ -20,7 +20,7 @@ func TestVSI_MissingAuth(t *testing.T) {
 }
 
 func TestVSI_Lifecycle(t *testing.T) {
-	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore()))
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
 	defer srv.Close()
 
 	token := "test-token"
@@ -75,7 +75,7 @@ func TestVSI_Lifecycle(t *testing.T) {
 }
 
 func TestVSI_Create_InvalidSubnet(t *testing.T) {
-	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore()))
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
 	defer srv.Close()
 
 	resp := doRequest(t, "POST", srv.URL+"/v1/instances", "tok",
@@ -84,7 +84,7 @@ func TestVSI_Create_InvalidSubnet(t *testing.T) {
 }
 
 func TestVSI_Create_BadRequest(t *testing.T) {
-	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore()))
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
 	defer srv.Close()
 
 	// missing name

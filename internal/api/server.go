@@ -8,11 +8,11 @@ import (
 	"github.com/we-work-in-the-cloud/nullcloud/backend/internal/store"
 )
 
-func NewServer(s store.Store) http.Handler {
+func NewServer(s store.Store, allowedTokens []string) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(authMiddleware)
+	r.Use(tokenMiddleware(allowedTokens))
 
 	r.Route("/v1", func(r chi.Router) {
 		r.Route("/vpcs", vpcRoutes(s))
