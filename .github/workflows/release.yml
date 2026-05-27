@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
       - run: go test -v -cover -timeout=120s -parallel=10 ./...
 
   release:
@@ -35,6 +37,8 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
