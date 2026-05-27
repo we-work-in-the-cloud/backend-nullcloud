@@ -1,7 +1,7 @@
 default: fmt lint test build
 
 BINARY_BASE      := nullcloud-backend
-VERSION          := 0.1.0
+VERSION          := 0.2.0
 BINARY_VERSIONED := $(BINARY_BASE)_v$(VERSION)
 
 # ── Platforms ──────────────────────────────────────────────────────────────────

@@ -43,7 +43,7 @@ func TestSubnet_Lifecycle(t *testing.T) {
 	mustStatus(t, resp, 201)
 	var sub model.Subnet
 	json.NewDecoder(resp.Body).Decode(&sub)
-	if sub.ID == "" || sub.Name != "my-subnet" || sub.VPCID != vpc.ID || sub.CIDRBlock == "" {
+	if sub.ID == "" || sub.Name != "my-subnet" || sub.VPCID != vpc.ID || sub.CIDRBlock == "" || sub.CRN == "" {
 		t.Fatalf("unexpected subnet: %+v", sub)
 	}
 

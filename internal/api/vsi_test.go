@@ -53,7 +53,7 @@ func TestVSI_Lifecycle(t *testing.T) {
 	if vsi.ID == "" || vsi.Name != "my-vsi" || vsi.SubnetID != sub.ID || vsi.VPCID != vpc.ID {
 		t.Fatalf("unexpected vsi: %+v", vsi)
 	}
-	if vsi.Status != "running" || vsi.PrimaryIP == "" {
+	if vsi.Status != "running" || vsi.PrimaryIP == "" || vsi.CRN == "" {
 		t.Fatalf("unexpected vsi fields: %+v", vsi)
 	}
 

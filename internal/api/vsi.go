@@ -67,6 +67,7 @@ func createVSI(s store.Store) http.HandlerFunc {
 			ID:        id,
 			Name:      req.Name,
 			Status:    "running",
+			CRN:       fmt.Sprintf("crn:nullcloud:instance:%s", id),
 			SubnetID:  sub.ID,
 			VPCID:     sub.VPCID,
 			Profile:   req.Profile.Name,

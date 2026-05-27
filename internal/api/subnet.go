@@ -61,6 +61,7 @@ func createSubnet(s store.Store) http.HandlerFunc {
 			ID:        id,
 			Name:      req.Name,
 			Status:    "available",
+			CRN:       fmt.Sprintf("crn:nullcloud:subnet:%s", id),
 			VPCID:     req.VPC.ID,
 			CIDRBlock: fmt.Sprintf("10.%d.%d.0/24", rand.Intn(256), rand.Intn(256)),
 			CreatedAt: time.Now().UTC(),
