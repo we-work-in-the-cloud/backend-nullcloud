@@ -2,6 +2,8 @@
 
 A fake cloud provider API — provision VPCs, subnets, and virtual server instances without any real infrastructure. Useful for demos, tests, and Terraform provider development.
 
+> **Using Terraform?** The [terraform-provider-nullcloud](https://github.com/we-work-in-the-cloud/terraform-provider-nullcloud) wraps this API and lets you manage NullCloud resources with `.tf` files.
+
 ## Install
 
 ```sh
