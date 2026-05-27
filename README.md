@@ -2,6 +2,13 @@
 
 A fake cloud provider API — provision VPCs, subnets, and virtual server instances without any real infrastructure. Useful for demos, tests, and Terraform provider development.
 
+## Install
+
+```sh
+brew tap we-work-in-the-cloud/backend-nullcloud https://github.com/we-work-in-the-cloud/backend-nullcloud
+brew install nullcloud-backend
+```
+
 ## Resources
 
 - VPC
