@@ -41,17 +41,15 @@ release:
   draft: false
   prerelease: auto
 
-brews:
+homebrew_casks:
   - name: nullcloud-backend
     repository:
       owner: we-work-in-the-cloud
       name: backend-nullcloud
       branch: main
       token: "{{ .Env.GITHUB_TOKEN }}"
-    directory: HomebrewFormula
+    directory: Casks
     homepage: https://github.com/we-work-in-the-cloud/backend-nullcloud
     description: NullCloud backend server
-    install: |
-      bin.install "nullcloud-backend"
-    test: |
-      assert_match "port", shell_output("#{bin}/nullcloud-backend --help 2>&1", 2)
+    binaries:
+      - nullcloud-backend
