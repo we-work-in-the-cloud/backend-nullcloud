@@ -4,22 +4,22 @@ cask "nullcloud-backend" do
 
   on_macos do
     on_intel do
-      sha256 "a9861986821b439ed686b88a9e2e9ac17946ee9be991ed83e9841709777bf0ec"
+      sha256 "768d0b45cc55518a3d52a4685cc70c49036a82086f6830a428b2a98922b29def"
       url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v#{version}/nullcloud-backend_v#{version}_darwin_amd64.tar.gz"
     end
     on_arm do
-      sha256 "3cf167af0541338eaf785d1dee66f5c7d9191b0a54c27e0909c60d8275b1fc49"
+      sha256 "e235b8e3329783fbb88c9d00f7a94b0577664357a5fccfc9bfb78e575a86b511"
       url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v#{version}/nullcloud-backend_v#{version}_darwin_arm64.tar.gz"
     end
   end
 
   on_linux do
     on_intel do
-      sha256 "2fab1e3370b3d01776b312bb9572d2d91d7f9dcdfc56fc6d0bcb9d49e2ddea30"
+      sha256 "06d82ee43bd9fdf85c99de6ba87a1cdba6e831f4270889e6e7f655f91c4660e9"
       url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v#{version}/nullcloud-backend_v#{version}_linux_amd64.tar.gz"
     end
     on_arm do
-      sha256 "c4d2821b46aaf30bff04342614de362c00592813e214b1b3d651f3be800559af"
+      sha256 "253af12bea720b5724e7393fbd648ca75f7905db5aafa97743a39c94beec8f79"
       url "https://github.com/we-work-in-the-cloud/backend-nullcloud/releases/download/v#{version}/nullcloud-backend_v#{version}_linux_arm64.tar.gz"
     end
   end
@@ -33,6 +33,10 @@ cask "nullcloud-backend" do
   end
 
   binary "nullcloud-backend"
+
+  postflight do
+    system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/nullcloud-backend"]
+  end
 
   # No zap stanza required
 
