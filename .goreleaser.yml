@@ -53,3 +53,6 @@ homebrew_casks:
     description: NullCloud backend server
     binaries:
       - nullcloud-backend
+    hooks:
+      post:
+        install: "system_command \"/usr/bin/xattr\", args: [\"-dr\", \"com.apple.quarantine\", \"#{staged_path}/nullcloud-backend\"]"
