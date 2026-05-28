@@ -58,6 +58,18 @@ func (s *MemoryStore) DeleteVPC(_ context.Context, token, id string) error {
 	return nil
 }
 
+func (s *MemoryStore) RenameVPC(_ context.Context, token, id, name string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.vpcs[token][id]
+	if !ok {
+		return fmt.Errorf("VPC %s not found", id)
+	}
+	v.Name = name
+	s.vpcs[token][id] = v
+	return nil
+}
+
 func (s *MemoryStore) CreateSubnet(_ context.Context, token string, sub model.Subnet) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -93,6 +105,18 @@ func (s *MemoryStore) DeleteSubnet(_ context.Context, token, id string) error {
 	return nil
 }
 
+func (s *MemoryStore) RenameSubnet(_ context.Context, token, id, name string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.subnets[token][id]
+	if !ok {
+		return fmt.Errorf("Subnet %s not found", id)
+	}
+	v.Name = name
+	s.subnets[token][id] = v
+	return nil
+}
+
 func (s *MemoryStore) CreateVSI(_ context.Context, token string, v model.VSI) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -125,6 +149,18 @@ func (s *MemoryStore) DeleteVSI(_ context.Context, token, id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.vsis[token], id)
+	return nil
+}
+
+func (s *MemoryStore) RenameVSI(_ context.Context, token, id, name string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.vsis[token][id]
+	if !ok {
+		return fmt.Errorf("VSI %s not found", id)
+	}
+	v.Name = name
+	s.vsis[token][id] = v
 	return nil
 }
 

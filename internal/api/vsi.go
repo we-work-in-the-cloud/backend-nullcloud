@@ -18,6 +18,7 @@ func vsiRoutes(s store.Store) func(chi.Router) {
 		r.Get("/", listVSIs(s))
 		r.Post("/", createVSI(s))
 		r.Get("/{id}", getVSI(s))
+		r.Patch("/{id}", updateVSI(s))
 		r.Delete("/{id}", deleteVSI(s))
 		r.Post("/{id}/actions", vsiAction(s))
 	}
@@ -136,6 +137,35 @@ func vsiAction(s store.Store) http.HandlerFunc {
 			return
 		}
 		vsi.Status = newStatus
+		writeJSON(w, http.StatusOK, vsi)
+	}
+}
+
+func updateVSI(s store.Store) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		token := tokenFromCtx(r.Context())
+		id := chi.URLParam(r, "id")
+		var req struct {
+			Name string `json:"name"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
+			writeError(w, http.StatusBadRequest, "bad_request", "name is required")
+			return
+		}
+		vsi, ok, err := s.GetVSI(r.Context(), token, id)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+			return
+		}
+		if !ok {
+			writeError(w, http.StatusNotFound, "not_found", "Instance not found")
+			return
+		}
+		if err := s.RenameVSI(r.Context(), token, id, req.Name); err != nil {
+			writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+			return
+		}
+		vsi.Name = req.Name
 		writeJSON(w, http.StatusOK, vsi)
 	}
 }

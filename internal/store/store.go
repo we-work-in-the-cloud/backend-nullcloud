@@ -13,15 +13,18 @@ type Store interface {
 	GetVPC(ctx context.Context, token, id string) (model.VPC, bool, error)
 	ListVPCs(ctx context.Context, token string) ([]model.VPC, error)
 	DeleteVPC(ctx context.Context, token, id string) error
+	RenameVPC(ctx context.Context, token, id, name string) error
 
 	CreateSubnet(ctx context.Context, token string, s model.Subnet) error
 	GetSubnet(ctx context.Context, token, id string) (model.Subnet, bool, error)
 	ListSubnets(ctx context.Context, token string) ([]model.Subnet, error)
 	DeleteSubnet(ctx context.Context, token, id string) error
+	RenameSubnet(ctx context.Context, token, id, name string) error
 
 	CreateVSI(ctx context.Context, token string, v model.VSI) error
 	GetVSI(ctx context.Context, token, id string) (model.VSI, bool, error)
 	ListVSIs(ctx context.Context, token string) ([]model.VSI, error)
 	DeleteVSI(ctx context.Context, token, id string) error
 	UpdateVSIStatus(ctx context.Context, token, id, status string) error
+	RenameVSI(ctx context.Context, token, id, name string) error
 }

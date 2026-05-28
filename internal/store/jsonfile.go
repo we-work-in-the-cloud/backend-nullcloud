@@ -98,6 +98,18 @@ func (s *JSONFileStore) DeleteVPC(_ context.Context, token, id string) error {
 	return s.flush()
 }
 
+func (s *JSONFileStore) RenameVPC(_ context.Context, token, id, name string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.data.VPCs[token][id]
+	if !ok {
+		return fmt.Errorf("VPC %s not found", id)
+	}
+	v.Name = name
+	s.data.VPCs[token][id] = v
+	return s.flush()
+}
+
 func (s *JSONFileStore) CreateSubnet(_ context.Context, token string, sub model.Subnet) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -133,6 +145,18 @@ func (s *JSONFileStore) DeleteSubnet(_ context.Context, token, id string) error 
 	return s.flush()
 }
 
+func (s *JSONFileStore) RenameSubnet(_ context.Context, token, id, name string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.data.Subnets[token][id]
+	if !ok {
+		return fmt.Errorf("Subnet %s not found", id)
+	}
+	v.Name = name
+	s.data.Subnets[token][id] = v
+	return s.flush()
+}
+
 func (s *JSONFileStore) CreateVSI(_ context.Context, token string, v model.VSI) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -165,6 +189,18 @@ func (s *JSONFileStore) DeleteVSI(_ context.Context, token, id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.data.VSIs[token], id)
+	return s.flush()
+}
+
+func (s *JSONFileStore) RenameVSI(_ context.Context, token, id, name string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.data.VSIs[token][id]
+	if !ok {
+		return fmt.Errorf("VSI %s not found", id)
+	}
+	v.Name = name
+	s.data.VSIs[token][id] = v
 	return s.flush()
 }
 
