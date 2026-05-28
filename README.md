@@ -8,7 +8,7 @@ A fake cloud provider API — provision VPCs, subnets, and virtual server instan
 
 ```sh
 brew tap we-work-in-the-cloud/backend-nullcloud https://github.com/we-work-in-the-cloud/backend-nullcloud
-brew install nullcloud-backend
+brew install --cask nullcloud-backend
 ```
 
 ## Resources
