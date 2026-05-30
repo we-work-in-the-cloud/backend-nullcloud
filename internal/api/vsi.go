@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"net"
 	"net/http"
 	"time"
 
@@ -64,6 +65,22 @@ func createVSI(s store.Store) http.HandlerFunc {
 			writeError(w, http.StatusNotFound, "not_found", "Subnet not found")
 			return
 		}
+		existing, err := s.ListVSIs(r.Context(), token)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+			return
+		}
+		usedIPs := make(map[string]bool, len(existing))
+		for _, v := range existing {
+			if v.SubnetID == sub.ID {
+				usedIPs[v.PrimaryIP] = true
+			}
+		}
+		primaryIP, err := allocateSubnetIP(sub.CIDRBlock, usedIPs)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+			return
+		}
 		id := uid.New("vsi")
 		vsi := model.VSI{
 			ID:        id,
@@ -74,7 +91,7 @@ func createVSI(s store.Store) http.HandlerFunc {
 			VPCID:     sub.VPCID,
 			Profile:   req.Profile.Name,
 			Image:     req.Image.ID,
-			PrimaryIP: fmt.Sprintf("10.%d.%d.%d", rand.Intn(256), rand.Intn(256), rand.Intn(254)+1),
+			PrimaryIP: primaryIP,
 			CreatedAt: time.Now().UTC(),
 		}
 		if err := s.CreateVSI(r.Context(), token, vsi); err != nil {
@@ -189,4 +206,36 @@ func deleteVSI(s store.Store) http.HandlerFunc {
 		}
 		w.WriteHeader(http.StatusNoContent)
 	}
+}
+
+// allocateSubnetIP picks a random unused host address within cidr.
+func allocateSubnetIP(cidr string, usedIPs map[string]bool) (string, error) {
+	_, network, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return "", fmt.Errorf("invalid subnet CIDR %s: %w", cidr, err)
+	}
+	ip4 := network.IP.To4()
+	if ip4 == nil {
+		return "", fmt.Errorf("only IPv4 CIDRs are supported")
+	}
+	ones, _ := network.Mask.Size()
+	hostBits := 32 - ones
+	if hostBits < 2 {
+		return "", fmt.Errorf("subnet %s is too small to allocate an IP", cidr)
+	}
+	totalHosts := (1 << hostBits) - 2 // exclude network address and broadcast
+	base := uint32(ip4[0])<<24 | uint32(ip4[1])<<16 | uint32(ip4[2])<<8 | uint32(ip4[3])
+
+	var available []string
+	for i := uint32(1); i <= uint32(totalHosts); i++ {
+		n := base + i
+		ip := fmt.Sprintf("%d.%d.%d.%d", n>>24, (n>>16)&0xff, (n>>8)&0xff, n&0xff)
+		if !usedIPs[ip] {
+			available = append(available, ip)
+		}
+	}
+	if len(available) == 0 {
+		return "", fmt.Errorf("no available IPs in %s", cidr)
+	}
+	return available[rand.Intn(len(available))], nil
 }
