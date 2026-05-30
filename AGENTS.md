@@ -19,6 +19,10 @@ The provider mirrors every model type defined here. Any structural change in the
 | `internal/api/vpc.go` | `internal/provider/vpc_resource.go`, `internal/provider/vpc_data_source.go` |
 | `internal/api/subnet.go` | `internal/provider/subnet_resource.go`, `internal/provider/subnet_data_source.go` |
 | `internal/api/vsi.go` | `internal/provider/instance_resource.go`, `internal/provider/instance_data_source.go`, `internal/provider/instance_action.go` |
+| `internal/api/loadbalancer.go` | `internal/provider/loadbalancer_resource.go`, `internal/provider/loadbalancer_data_source.go` |
+| `internal/api/bucket.go` | `internal/provider/bucket_resource.go`, `internal/provider/bucket_data_source.go` |
+| `internal/api/database.go` | `internal/provider/database_resource.go`, `internal/provider/database_data_source.go` |
+| `internal/api/cluster.go` | `internal/provider/cluster_resource.go`, `internal/provider/cluster_data_source.go` |
 
 ### Adding a field to a model
 
@@ -48,7 +52,7 @@ Every resource must have a `CRN` field. The format is:
 crn:nullcloud:<resource-type>:<id>
 ```
 
-Resource type tokens: `vpc`, `subnet`, `instance`.
+Resource type tokens: `vpc`, `subnet`, `instance`, `loadbalancer`, `bucket`, `database`, `cluster`.
 
 ## Build and test
 

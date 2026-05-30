@@ -16,6 +16,10 @@ brew install --cask nullcloud-backend
 - VPC
 - Subnet
 - Virtual Server Instance (VSI)
+- Load Balancer
+- Object Storage Bucket
+- Managed Database
+- Kubernetes Cluster
 
 ## Auth
 

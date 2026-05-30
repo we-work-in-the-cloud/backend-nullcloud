@@ -27,4 +27,28 @@ type Store interface {
 	DeleteVSI(ctx context.Context, token, id string) error
 	UpdateVSIStatus(ctx context.Context, token, id, status string) error
 	RenameVSI(ctx context.Context, token, id, name string) error
+
+	CreateLoadBalancer(ctx context.Context, token string, lb model.LoadBalancer) error
+	GetLoadBalancer(ctx context.Context, token, id string) (model.LoadBalancer, bool, error)
+	ListLoadBalancers(ctx context.Context, token string) ([]model.LoadBalancer, error)
+	DeleteLoadBalancer(ctx context.Context, token, id string) error
+	RenameLoadBalancer(ctx context.Context, token, id, name string) error
+
+	CreateBucket(ctx context.Context, token string, b model.Bucket) error
+	GetBucket(ctx context.Context, token, id string) (model.Bucket, bool, error)
+	ListBuckets(ctx context.Context, token string) ([]model.Bucket, error)
+	DeleteBucket(ctx context.Context, token, id string) error
+	RenameBucket(ctx context.Context, token, id, name string) error
+
+	CreateDatabase(ctx context.Context, token string, db model.Database) error
+	GetDatabase(ctx context.Context, token, id string) (model.Database, bool, error)
+	ListDatabases(ctx context.Context, token string) ([]model.Database, error)
+	DeleteDatabase(ctx context.Context, token, id string) error
+	RenameDatabase(ctx context.Context, token, id, name string) error
+
+	CreateKubernetesCluster(ctx context.Context, token string, c model.KubernetesCluster) error
+	GetKubernetesCluster(ctx context.Context, token, id string) (model.KubernetesCluster, bool, error)
+	ListKubernetesClusters(ctx context.Context, token string) ([]model.KubernetesCluster, error)
+	DeleteKubernetesCluster(ctx context.Context, token, id string) error
+	RenameKubernetesCluster(ctx context.Context, token, id, name string) error
 }

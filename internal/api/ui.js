@@ -4,7 +4,7 @@
 
 // ----- State -----
 let token = '';
-let vpcs = [], subnets = [], instances = [];
+let vpcs = [], subnets = [], instances = [], loadbalancers = [], buckets = [], databases = [], clusters = [];
 let modalState = null;
 let pendingDelete = null;
 
@@ -74,15 +74,21 @@ async function loadAll() {
   showSkeletons();
 
   try {
-    const [a, b, c] = await Promise.all([
+    const [a, b, c, d, e, f, g] = await Promise.all([
       api('/v1/vpcs'), api('/v1/subnets'), api('/v1/instances'),
+      api('/v1/loadbalancers'), api('/v1/buckets'), api('/v1/databases'), api('/v1/clusters'),
     ]);
-    vpcs      = (a.vpcs      || []).sort(byCreated);
-    subnets   = (b.subnets   || []).sort(byCreated);
-    instances = (c.instances || []).sort(byCreated);
+    vpcs          = (a.vpcs           || []).sort(byCreated);
+    subnets       = (b.subnets        || []).sort(byCreated);
+    instances     = (c.instances      || []).sort(byCreated);
+    loadbalancers = (d.load_balancers || []).sort(byCreated);
+    buckets       = (e.buckets        || []).sort(byCreated);
+    databases     = (f.databases      || []).sort(byCreated);
+    clusters      = (g.clusters       || []).sort(byCreated);
 
     updateCounts();
     renderVPCs(); renderSubnets(); renderInstances();
+    renderLoadBalancers(); renderBuckets(); renderDatabases(); renderClusters();
 
     const pill = document.getElementById('connPill');
     pill.classList.remove('hidden');
@@ -112,15 +118,23 @@ function showSkeletons() {
       <div class="skel" style="width:68px;height:22px;border-radius:20px;margin-left:auto"></div>
       <div class="skel" style="width:80px;height:28px;border-radius:6px"></div>
     </div>`).join('');
-  document.getElementById('vpcsBody').innerHTML      = `<div class="skel-table">${rows(4)}</div>`;
-  document.getElementById('subnetsBody').innerHTML   = `<div class="skel-table">${rows(4)}</div>`;
-  document.getElementById('instancesBody').innerHTML = `<div class="skel-table">${rows(4)}</div>`;
+  document.getElementById('vpcsBody').innerHTML          = `<div class="skel-table">${rows(4)}</div>`;
+  document.getElementById('subnetsBody').innerHTML       = `<div class="skel-table">${rows(4)}</div>`;
+  document.getElementById('instancesBody').innerHTML     = `<div class="skel-table">${rows(4)}</div>`;
+  document.getElementById('loadbalancersBody').innerHTML = `<div class="skel-table">${rows(3)}</div>`;
+  document.getElementById('bucketsBody').innerHTML       = `<div class="skel-table">${rows(3)}</div>`;
+  document.getElementById('databasesBody').innerHTML     = `<div class="skel-table">${rows(3)}</div>`;
+  document.getElementById('clustersBody').innerHTML      = `<div class="skel-table">${rows(3)}</div>`;
 }
 
 function updateCounts() {
   document.getElementById('cVpc').textContent = vpcs.length;
   document.getElementById('cSub').textContent = subnets.length;
   document.getElementById('cVsi').textContent = instances.length;
+  document.getElementById('cLb').textContent  = loadbalancers.length;
+  document.getElementById('cBkt').textContent = buckets.length;
+  document.getElementById('cDb').textContent  = databases.length;
+  document.getElementById('cK8s').textContent = clusters.length;
 }
 
 // ----- Rendering helpers -----
@@ -229,12 +243,112 @@ function renderInstances() {
   </table>`;
 }
 
+function renderLoadBalancers() {
+  const el = document.getElementById('loadbalancersBody');
+  if (!loadbalancers.length) { el.innerHTML = emptyState('No load balancers yet', 'Create a load balancer to distribute traffic.'); return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>Name</th><th>Status</th><th>Protocol</th><th>Port</th><th>CRN</th><th>Created</th><th></th></tr></thead>
+    <tbody>${loadbalancers.map(lb => `<tr>
+      <td>
+        <div class="rname">${esc(lb.name)}</div>
+        <div class="rid">${esc(lb.id)}</div>
+      </td>
+      <td>${badge(lb.status)}</td>
+      <td><code>${esc(lb.protocol)}</code></td>
+      <td><code>${esc(lb.port)}</code></td>
+      <td><span class="crn">${esc(lb.crn)}</span></td>
+      <td style="color:var(--text-3);white-space:nowrap">${fmt(lb.created_at)}</td>
+      <td>
+        <div class="acts row-actions">
+          <button class="btn-icon" title="Rename" onclick='openEdit("loadbalancer",${JSON.stringify(lb)})'>${PENCIL}</button>
+          <button class="btn-icon danger" title="Delete" onclick="confirmDelete('loadbalancers','${esc(lb.id)}','${esc(lb.name)}')">${TRASH}</button>
+        </div>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function renderBuckets() {
+  const el = document.getElementById('bucketsBody');
+  if (!buckets.length) { el.innerHTML = emptyState('No buckets yet', 'Create an object storage bucket.'); return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>Name</th><th>Status</th><th>Region</th><th>CRN</th><th>Created</th><th></th></tr></thead>
+    <tbody>${buckets.map(b => `<tr>
+      <td>
+        <div class="rname">${esc(b.name)}</div>
+        <div class="rid">${esc(b.id)}</div>
+      </td>
+      <td>${badge(b.status)}</td>
+      <td><code>${esc(b.region)}</code></td>
+      <td><span class="crn">${esc(b.crn)}</span></td>
+      <td style="color:var(--text-3);white-space:nowrap">${fmt(b.created_at)}</td>
+      <td>
+        <div class="acts row-actions">
+          <button class="btn-icon" title="Rename" onclick='openEdit("bucket",${JSON.stringify(b)})'>${PENCIL}</button>
+          <button class="btn-icon danger" title="Delete" onclick="confirmDelete('buckets','${esc(b.id)}','${esc(b.name)}')">${TRASH}</button>
+        </div>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function renderDatabases() {
+  const el = document.getElementById('databasesBody');
+  if (!databases.length) { el.innerHTML = emptyState('No databases yet', 'Create a managed database instance.'); return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>Name</th><th>Status</th><th>Engine</th><th>Version</th><th>Plan</th><th>CRN</th><th>Created</th><th></th></tr></thead>
+    <tbody>${databases.map(db => `<tr>
+      <td>
+        <div class="rname">${esc(db.name)}</div>
+        <div class="rid">${esc(db.id)}</div>
+      </td>
+      <td>${badge(db.status)}</td>
+      <td><code>${esc(db.engine)}</code></td>
+      <td><code>${esc(db.version)}</code></td>
+      <td><code>${esc(db.plan)}</code></td>
+      <td><span class="crn">${esc(db.crn)}</span></td>
+      <td style="color:var(--text-3);white-space:nowrap">${fmt(db.created_at)}</td>
+      <td>
+        <div class="acts row-actions">
+          <button class="btn-icon" title="Rename" onclick='openEdit("database",${JSON.stringify(db)})'>${PENCIL}</button>
+          <button class="btn-icon danger" title="Delete" onclick="confirmDelete('databases','${esc(db.id)}','${esc(db.name)}')">${TRASH}</button>
+        </div>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function renderClusters() {
+  const el = document.getElementById('clustersBody');
+  if (!clusters.length) { el.innerHTML = emptyState('No clusters yet', 'Create a Kubernetes cluster.'); return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>Name</th><th>Status</th><th>Version</th><th>Nodes</th><th>CRN</th><th>Created</th><th></th></tr></thead>
+    <tbody>${clusters.map(cl => `<tr>
+      <td>
+        <div class="rname">${esc(cl.name)}</div>
+        <div class="rid">${esc(cl.id)}</div>
+      </td>
+      <td>${badge(cl.status)}</td>
+      <td><code>${esc(cl.version)}</code></td>
+      <td>${esc(cl.node_count)}</td>
+      <td><span class="crn">${esc(cl.crn)}</span></td>
+      <td style="color:var(--text-3);white-space:nowrap">${fmt(cl.created_at)}</td>
+      <td>
+        <div class="acts row-actions">
+          <button class="btn-icon" title="Rename" onclick='openEdit("cluster",${JSON.stringify(cl)})'>${PENCIL}</button>
+          <button class="btn-icon danger" title="Delete" onclick="confirmDelete('clusters','${esc(cl.id)}','${esc(cl.name)}')">${TRASH}</button>
+        </div>
+      </td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+
 // ----- Modal -----
 function openCreate(type) {
   pendingDelete = null;
   resetModalOk();
   modalState = { mode: 'create', type, resource: null };
-  const labels = { vpc: 'VPC', subnet: 'Subnet', instance: 'Instance' };
+  const labels = { vpc: 'VPC', subnet: 'Subnet', instance: 'Instance', loadbalancer: 'Load Balancer', bucket: 'Bucket', database: 'Database', cluster: 'Cluster' };
   document.getElementById('modalTitle').textContent = `Create ${labels[type]}`;
   document.getElementById('modalOk').textContent = 'Create';
   document.getElementById('modalBody').innerHTML = buildForm(type, null);
@@ -246,7 +360,7 @@ function openEdit(type, resource) {
   pendingDelete = null;
   resetModalOk();
   modalState = { mode: 'edit', type, resource };
-  const labels = { vpc: 'VPC', subnet: 'Subnet', instance: 'Instance' };
+  const labels = { vpc: 'VPC', subnet: 'Subnet', instance: 'Instance', loadbalancer: 'Load Balancer', bucket: 'Bucket', database: 'Database', cluster: 'Cluster' };
   document.getElementById('modalTitle').textContent = `Rename ${labels[type]}`;
   document.getElementById('modalOk').textContent = 'Save';
   document.getElementById('modalBody').innerHTML = buildForm(type, resource);
@@ -294,6 +408,74 @@ function buildForm(type, resource) {
     </div>`;
   }
 
+  if (type === 'loadbalancer' && !resource) {
+    html += `<div class="field-row">
+      <div class="field">
+        <label for="f-protocol">Protocol</label>
+        <select id="f-protocol">
+          <option value="tcp">tcp</option>
+          <option value="http">http</option>
+          <option value="https" selected>https</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-port">Port</label>
+        <input type="number" id="f-port" placeholder="443" min="1" max="65535" value="443" autocomplete="off"/>
+      </div>
+    </div>`;
+  }
+
+  if (type === 'bucket' && !resource) {
+    html += `<div class="field">
+      <label for="f-region">Region <span class="field-hint">(optional, default us-east-1)</span></label>
+      <select id="f-region">
+        <option value="">us-east-1 (default)</option>
+        <option value="us-east-1">us-east-1</option>
+        <option value="us-west-2">us-west-2</option>
+        <option value="eu-west-1">eu-west-1</option>
+        <option value="ap-southeast-1">ap-southeast-1</option>
+      </select>
+    </div>`;
+  }
+
+  if (type === 'database' && !resource) {
+    html += `<div class="field-row">
+      <div class="field">
+        <label for="f-engine">Engine</label>
+        <select id="f-engine">
+          <option value="postgres">postgres</option>
+          <option value="mysql">mysql</option>
+          <option value="mariadb">mariadb</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-version">Version</label>
+        <input type="text" id="f-version" placeholder="15" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="field">
+      <label for="f-plan">Plan</label>
+      <select id="f-plan">
+        <option value="small">small</option>
+        <option value="medium" selected>medium</option>
+        <option value="large">large</option>
+      </select>
+    </div>`;
+  }
+
+  if (type === 'cluster' && !resource) {
+    html += `<div class="field-row">
+      <div class="field">
+        <label for="f-version">Kubernetes Version</label>
+        <input type="text" id="f-version" placeholder="1.30" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label for="f-nodes">Node Count</label>
+        <input type="number" id="f-nodes" placeholder="3" min="1" value="3" autocomplete="off"/>
+      </div>
+    </div>`;
+  }
+
   return html;
 }
 
@@ -321,7 +503,7 @@ async function submitModal() {
     closeModal();
     try {
       await api(`/v1/${path}/${id}`, { method: 'DELETE' });
-      const labels = { vpcs: 'VPC', subnets: 'Subnet', instances: 'Instance' };
+      const labels = { vpcs: 'VPC', subnets: 'Subnet', instances: 'Instance', loadbalancers: 'Load Balancer', buckets: 'Bucket', databases: 'Database', clusters: 'Cluster' };
       toast(`${labels[path]} deleted`, 'success');
       await loadAll();
     } catch (err) { toast('Delete failed: ' + err.message, 'error'); }
@@ -340,7 +522,7 @@ async function submitModal() {
   }
   nameEl?.classList.remove('error');
 
-  const pathMap = { vpc: 'vpcs', subnet: 'subnets', instance: 'instances' };
+  const pathMap = { vpc: 'vpcs', subnet: 'subnets', instance: 'instances', loadbalancer: 'loadbalancers', bucket: 'buckets', database: 'databases', cluster: 'clusters' };
   const path = pathMap[type];
 
   document.getElementById('modalOk').disabled = true;
@@ -353,9 +535,13 @@ async function submitModal() {
       });
       toast('Renamed successfully', 'success');
       closeModal();
-      if (type === 'vpc')      { const i = vpcs.findIndex(x => x.id === resource.id);      if (i !== -1) { vpcs[i] = res;      renderVPCs(); } }
-      if (type === 'subnet')   { const i = subnets.findIndex(x => x.id === resource.id);   if (i !== -1) { subnets[i] = res;   renderSubnets(); } }
-      if (type === 'instance') { const i = instances.findIndex(x => x.id === resource.id); if (i !== -1) { instances[i] = res; renderInstances(); } }
+      if (type === 'vpc')          { const i = vpcs.findIndex(x => x.id === resource.id);          if (i !== -1) { vpcs[i] = res;          renderVPCs(); } }
+      if (type === 'subnet')       { const i = subnets.findIndex(x => x.id === resource.id);       if (i !== -1) { subnets[i] = res;       renderSubnets(); } }
+      if (type === 'instance')     { const i = instances.findIndex(x => x.id === resource.id);     if (i !== -1) { instances[i] = res;     renderInstances(); } }
+      if (type === 'loadbalancer') { const i = loadbalancers.findIndex(x => x.id === resource.id); if (i !== -1) { loadbalancers[i] = res; renderLoadBalancers(); } }
+      if (type === 'bucket')       { const i = buckets.findIndex(x => x.id === resource.id);       if (i !== -1) { buckets[i] = res;       renderBuckets(); } }
+      if (type === 'database')     { const i = databases.findIndex(x => x.id === resource.id);     if (i !== -1) { databases[i] = res;     renderDatabases(); } }
+      if (type === 'cluster')      { const i = clusters.findIndex(x => x.id === resource.id);      if (i !== -1) { clusters[i] = res;      renderClusters(); } }
     } else {
       let body = { name };
       if (type === 'subnet') {
@@ -372,17 +558,50 @@ async function submitModal() {
         if (profile) body.profile = { name: profile };
         if (image)   body.image   = { id: image };
       }
+      if (type === 'loadbalancer') {
+        const protocol = document.getElementById('f-protocol')?.value;
+        const port     = parseInt(document.getElementById('f-port')?.value, 10);
+        if (!protocol) { toast('Select a protocol', 'error'); return; }
+        if (!port || port < 1 || port > 65535) { toast('Enter a valid port (1-65535)', 'error'); return; }
+        body.protocol = protocol;
+        body.port = port;
+      }
+      if (type === 'bucket') {
+        const region = document.getElementById('f-region')?.value;
+        if (region) body.region = region;
+      }
+      if (type === 'database') {
+        const engine  = document.getElementById('f-engine')?.value;
+        const version = document.getElementById('f-version')?.value.trim();
+        const plan    = document.getElementById('f-plan')?.value;
+        if (!version) { toast('Enter a version', 'error'); document.getElementById('f-version')?.focus(); return; }
+        body.engine  = engine;
+        body.version = version;
+        body.plan    = plan;
+      }
+      if (type === 'cluster') {
+        const version   = document.getElementById('f-version')?.value.trim();
+        const nodeCount = parseInt(document.getElementById('f-nodes')?.value, 10);
+        if (!version) { toast('Enter a Kubernetes version', 'error'); document.getElementById('f-version')?.focus(); return; }
+        if (!nodeCount || nodeCount < 1) { toast('Node count must be at least 1', 'error'); return; }
+        body.version    = version;
+        body.node_count = nodeCount;
+      }
       const res = await api(`/v1/${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      const labels = { vpc: 'VPC', subnet: 'Subnet', instance: 'Instance' };
+      const labels = { vpc: 'VPC', subnet: 'Subnet', instance: 'Instance', loadbalancer: 'Load Balancer', bucket: 'Bucket', database: 'Database', cluster: 'Cluster' };
       toast(`${labels[type]} created`, 'success');
       closeModal();
-      if (type === 'vpc')      { vpcs.push(res);      vpcs.sort(byCreated);      updateCounts(); renderVPCs(); }
-      if (type === 'subnet')   { subnets.push(res);   subnets.sort(byCreated);   updateCounts(); renderSubnets(); }
-      if (type === 'instance') { instances.push(res); instances.sort(byCreated); updateCounts(); renderInstances(); }
+      if (type === 'vpc')          { vpcs.push(res);          vpcs.sort(byCreated);          updateCounts(); renderVPCs(); }
+      if (type === 'subnet')       { subnets.push(res);       subnets.sort(byCreated);       updateCounts(); renderSubnets(); }
+      if (type === 'instance')     { instances.push(res);     instances.sort(byCreated);     updateCounts(); renderInstances(); }
+      if (type === 'loadbalancer') { loadbalancers.push(res); loadbalancers.sort(byCreated); updateCounts(); renderLoadBalancers(); }
+      if (type === 'bucket')       { buckets.push(res);       buckets.sort(byCreated);       updateCounts(); renderBuckets(); }
+      if (type === 'database')     { databases.push(res);     databases.sort(byCreated);     updateCounts(); renderDatabases(); }
+      if (type === 'cluster')      { clusters.push(res);      clusters.sort(byCreated);      updateCounts(); renderClusters(); }
     }
   } catch (err) {
     toast((mode === 'edit' ? 'Rename' : 'Create') + ' failed: ' + err.message, 'error');
@@ -395,7 +614,7 @@ async function submitModal() {
 function confirmDelete(path, id, name) {
   pendingDelete = { path, id };
   modalState = null;
-  const labels = { vpcs: 'VPC', subnets: 'Subnet', instances: 'Instance' };
+  const labels = { vpcs: 'VPC', subnets: 'Subnet', instances: 'Instance', loadbalancers: 'Load Balancer', buckets: 'Bucket', databases: 'Database', clusters: 'Cluster' };
   document.getElementById('modalTitle').textContent = `Delete ${labels[path]}`;
   document.getElementById('modalOk').textContent = 'Delete';
   document.getElementById('modalOk').className = 'btn btn-danger';

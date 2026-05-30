@@ -29,6 +29,10 @@ func NewAPIHandler(s store.Store, allowedTokens []string) http.Handler {
 			r.Route("/vpcs", vpcRoutes(s))
 			r.Route("/subnets", subnetRoutes(s))
 			r.Route("/instances", vsiRoutes(s))
+			r.Route("/loadbalancers", loadBalancerRoutes(s))
+			r.Route("/buckets", bucketRoutes(s))
+			r.Route("/databases", databaseRoutes(s))
+			r.Route("/clusters", clusterRoutes(s))
 		})
 	})
 	return r
