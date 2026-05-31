@@ -38,10 +38,11 @@ func createDatabase(s store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := tokenFromCtx(r.Context())
 		var req struct {
-			Name    string `json:"name"`
-			Engine  string `json:"engine"`
-			Version string `json:"version"`
-			Plan    string `json:"plan"`
+			Name      string   `json:"name"`
+			Engine    string   `json:"engine"`
+			Version   string   `json:"version"`
+			Plan      string   `json:"plan"`
+			SubnetIDs []string `json:"subnet_ids"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
 			writeError(w, http.StatusBadRequest, "bad_request", "name is required")
@@ -59,6 +60,19 @@ func createDatabase(s store.Store) http.HandlerFunc {
 			writeError(w, http.StatusBadRequest, "bad_request", "plan must be small, medium, or large")
 			return
 		}
+		if len(req.SubnetIDs) == 0 {
+			writeError(w, http.StatusBadRequest, "bad_request", "subnet_ids is required")
+			return
+		}
+		for _, subnetID := range req.SubnetIDs {
+			if _, ok, err := s.GetSubnet(r.Context(), token, subnetID); err != nil {
+				writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+				return
+			} else if !ok {
+				writeError(w, http.StatusNotFound, "not_found", fmt.Sprintf("Subnet %s not found", subnetID))
+				return
+			}
+		}
 		id := uid.New("db")
 		db := model.Database{
 			ID:        id,
@@ -68,6 +82,7 @@ func createDatabase(s store.Store) http.HandlerFunc {
 			Engine:    req.Engine,
 			Version:   req.Version,
 			Plan:      req.Plan,
+			SubnetIDs: req.SubnetIDs,
 			CreatedAt: time.Now().UTC(),
 		}
 		if err := s.CreateDatabase(r.Context(), token, db); err != nil {

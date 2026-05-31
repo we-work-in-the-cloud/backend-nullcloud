@@ -38,9 +38,10 @@ func createCluster(s store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := tokenFromCtx(r.Context())
 		var req struct {
-			Name      string `json:"name"`
-			Version   string `json:"version"`
-			NodeCount int    `json:"node_count"`
+			Name      string   `json:"name"`
+			Version   string   `json:"version"`
+			NodeCount int      `json:"node_count"`
+			SubnetIDs []string `json:"subnet_ids"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
 			writeError(w, http.StatusBadRequest, "bad_request", "name is required")
@@ -54,6 +55,19 @@ func createCluster(s store.Store) http.HandlerFunc {
 			writeError(w, http.StatusBadRequest, "bad_request", "node_count must be at least 1")
 			return
 		}
+		if len(req.SubnetIDs) == 0 {
+			writeError(w, http.StatusBadRequest, "bad_request", "subnet_ids is required")
+			return
+		}
+		for _, subnetID := range req.SubnetIDs {
+			if _, ok, err := s.GetSubnet(r.Context(), token, subnetID); err != nil {
+				writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+				return
+			} else if !ok {
+				writeError(w, http.StatusNotFound, "not_found", fmt.Sprintf("Subnet %s not found", subnetID))
+				return
+			}
+		}
 		id := uid.New("k8s")
 		c := model.KubernetesCluster{
 			ID:        id,
@@ -62,6 +76,7 @@ func createCluster(s store.Store) http.HandlerFunc {
 			CRN:       fmt.Sprintf("crn:nullcloud:cluster:%s", id),
 			Version:   req.Version,
 			NodeCount: req.NodeCount,
+			SubnetIDs: req.SubnetIDs,
 			CreatedAt: time.Now().UTC(),
 		}
 		if err := s.CreateKubernetesCluster(r.Context(), token, c); err != nil {

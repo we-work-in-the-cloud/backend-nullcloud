@@ -41,6 +41,10 @@ func createLoadBalancer(s store.Store) http.HandlerFunc {
 			Name     string `json:"name"`
 			Protocol string `json:"protocol"`
 			Port     int    `json:"port"`
+			Targets  []struct {
+				Type string `json:"type"`
+				ID   string `json:"id"`
+			} `json:"targets"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
 			writeError(w, http.StatusBadRequest, "bad_request", "name is required")
@@ -54,6 +58,31 @@ func createLoadBalancer(s store.Store) http.HandlerFunc {
 			writeError(w, http.StatusBadRequest, "bad_request", "port must be between 1 and 65535")
 			return
 		}
+		var targets []model.LoadBalancerTarget
+		for _, t := range req.Targets {
+			switch t.Type {
+			case "cluster":
+				if _, ok, err := s.GetKubernetesCluster(r.Context(), token, t.ID); err != nil {
+					writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+					return
+				} else if !ok {
+					writeError(w, http.StatusNotFound, "not_found", fmt.Sprintf("Cluster %s not found", t.ID))
+					return
+				}
+			case "vsi":
+				if _, ok, err := s.GetVSI(r.Context(), token, t.ID); err != nil {
+					writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+					return
+				} else if !ok {
+					writeError(w, http.StatusNotFound, "not_found", fmt.Sprintf("VSI %s not found", t.ID))
+					return
+				}
+			default:
+				writeError(w, http.StatusBadRequest, "bad_request", fmt.Sprintf("target type must be cluster or vsi, got %q", t.Type))
+				return
+			}
+			targets = append(targets, model.LoadBalancerTarget{Type: t.Type, ID: t.ID})
+		}
 		id := uid.New("lb")
 		lb := model.LoadBalancer{
 			ID:        id,
@@ -62,6 +91,7 @@ func createLoadBalancer(s store.Store) http.HandlerFunc {
 			CRN:       fmt.Sprintf("crn:nullcloud:loadbalancer:%s", id),
 			Protocol:  req.Protocol,
 			Port:      req.Port,
+			Targets:   targets,
 			CreatedAt: time.Now().UTC(),
 		}
 		if err := s.CreateLoadBalancer(r.Context(), token, lb); err != nil {

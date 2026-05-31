@@ -33,14 +33,20 @@ type VSI struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type LoadBalancerTarget struct {
+	Type string `json:"type"` // "cluster" or "vsi"
+	ID   string `json:"id"`
+}
+
 type LoadBalancer struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Status    string    `json:"status"`
-	CRN       string    `json:"crn"`
-	Protocol  string    `json:"protocol"`
-	Port      int       `json:"port"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        string               `json:"id"`
+	Name      string               `json:"name"`
+	Status    string               `json:"status"`
+	CRN       string               `json:"crn"`
+	Protocol  string               `json:"protocol"`
+	Port      int                  `json:"port"`
+	Targets   []LoadBalancerTarget `json:"targets"`
+	CreatedAt time.Time            `json:"created_at"`
 }
 
 type Bucket struct {
@@ -60,6 +66,7 @@ type Database struct {
 	Engine    string    `json:"engine"`
 	Version   string    `json:"version"`
 	Plan      string    `json:"plan"`
+	SubnetIDs []string  `json:"subnet_ids"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -70,5 +77,6 @@ type KubernetesCluster struct {
 	CRN       string    `json:"crn"`
 	Version   string    `json:"version"`
 	NodeCount int       `json:"node_count"`
+	SubnetIDs []string  `json:"subnet_ids"`
 	CreatedAt time.Time `json:"created_at"`
 }
