@@ -38,10 +38,10 @@ func createLoadBalancer(s store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := tokenFromCtx(r.Context())
 		var req struct {
-			Name     string `json:"name"`
+			Name    string `json:"name"`
 			Protocol string `json:"protocol"`
-			Port     int    `json:"port"`
-			Targets  []struct {
+			Port    int    `json:"port"`
+			Targets []struct {
 				Type string `json:"type"`
 				ID   string `json:"id"`
 			} `json:"targets"`

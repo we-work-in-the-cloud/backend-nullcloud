@@ -25,7 +25,7 @@ func TestSubnet_Lifecycle(t *testing.T) {
 
 	token := "test-token"
 
-	// create VPC first
+	// create VPC first (defaults to us-east)
 	resp := doRequest(t, "POST", srv.URL+"/v1/vpcs", token, `{"name":"my-vpc"}`)
 	mustStatus(t, resp, 201)
 	var vpc model.VPC
@@ -37,14 +37,17 @@ func TestSubnet_Lifecycle(t *testing.T) {
 	resp = doRequest(t, "GET", base, token, "")
 	mustStatus(t, resp, 200)
 
-	// create
-	body := fmt.Sprintf(`{"name":"my-subnet","vpc":{"id":"%s"}}`, vpc.ID)
+	// create with zone in VPC's region
+	body := fmt.Sprintf(`{"name":"my-subnet","vpc":{"id":"%s"},"zone":"us-east-1"}`, vpc.ID)
 	resp = doRequest(t, "POST", base, token, body)
 	mustStatus(t, resp, 201)
 	var sub model.Subnet
 	json.NewDecoder(resp.Body).Decode(&sub)
 	if sub.ID == "" || sub.Name != "my-subnet" || sub.VPCID != vpc.ID || sub.CIDRBlock == "" || sub.CRN == "" {
 		t.Fatalf("unexpected subnet: %+v", sub)
+	}
+	if sub.Zone != "us-east-1" {
+		t.Fatalf("expected zone us-east-1, got %q", sub.Zone)
 	}
 
 	// get
@@ -64,12 +67,70 @@ func TestSubnet_Lifecycle(t *testing.T) {
 	mustStatus(t, resp, 404)
 }
 
+func TestSubnet_Zone_AllZonesInRegion(t *testing.T) {
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
+	defer srv.Close()
+
+	token := "tok"
+
+	resp := doRequest(t, "POST", srv.URL+"/v1/vpcs", token, `{"name":"vpc","region":"eu-west"}`)
+	mustStatus(t, resp, 201)
+	var vpc model.VPC
+	json.NewDecoder(resp.Body).Decode(&vpc)
+
+	for _, zone := range []string{"eu-west-1", "eu-west-2", "eu-west-3"} {
+		body := fmt.Sprintf(`{"name":"sub-%s","vpc":{"id":"%s"},"zone":"%s"}`, zone, vpc.ID, zone)
+		resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, body)
+		mustStatus(t, resp, 201)
+		var sub model.Subnet
+		json.NewDecoder(resp.Body).Decode(&sub)
+		if sub.Zone != zone {
+			t.Errorf("expected zone %q, got %q", zone, sub.Zone)
+		}
+	}
+}
+
+func TestSubnet_Zone_WrongRegion(t *testing.T) {
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
+	defer srv.Close()
+
+	token := "tok"
+
+	// VPC in us-west; subnet zone from a different region → bad request
+	resp := doRequest(t, "POST", srv.URL+"/v1/vpcs", token, `{"name":"vpc","region":"us-west"}`)
+	mustStatus(t, resp, 201)
+	var vpc model.VPC
+	json.NewDecoder(resp.Body).Decode(&vpc)
+
+	for _, zone := range []string{"us-east-1", "eu-west-2", "us-central-3", "us-west"} {
+		body := fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"%s"}`, vpc.ID, zone)
+		resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, body)
+		mustStatus(t, resp, 400)
+	}
+}
+
+func TestSubnet_Create_MissingZone(t *testing.T) {
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
+	defer srv.Close()
+
+	token := "tok"
+
+	resp := doRequest(t, "POST", srv.URL+"/v1/vpcs", token, `{"name":"vpc"}`)
+	mustStatus(t, resp, 201)
+	var vpc model.VPC
+	json.NewDecoder(resp.Body).Decode(&vpc)
+
+	body := fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"}}`, vpc.ID)
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, body)
+	mustStatus(t, resp, 400)
+}
+
 func TestSubnet_Create_InvalidVPC(t *testing.T) {
 	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
 	defer srv.Close()
 
 	resp := doRequest(t, "POST", srv.URL+"/v1/subnets", "tok",
-		`{"name":"s","vpc":{"id":"nonexistent-vpc"}}`)
+		`{"name":"s","vpc":{"id":"nonexistent-vpc"},"zone":"us-east-1"}`)
 	mustStatus(t, resp, 404)
 }
 
@@ -78,10 +139,14 @@ func TestSubnet_Create_BadRequest(t *testing.T) {
 	defer srv.Close()
 
 	// missing name
-	resp := doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"vpc":{"id":"x"}}`)
+	resp := doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"vpc":{"id":"x"},"zone":"us-east-1"}`)
 	mustStatus(t, resp, 400)
 
 	// missing vpc
-	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s"}`)
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","zone":"us-east-1"}`)
+	mustStatus(t, resp, 400)
+
+	// missing zone
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"x"}}`)
 	mustStatus(t, resp, 400)
 }

@@ -157,6 +157,7 @@
       <button class="tab" id="tab-btn-buckets" onclick="switchTabByName('buckets')">Buckets</button>
       <button class="tab" id="tab-btn-databases" onclick="switchTabByName('databases')">Databases</button>
       <button class="tab" id="tab-btn-clusters" onclick="switchTabByName('clusters')">Clusters</button>
+      <button class="tab" id="tab-btn-graph" onclick="switchTabByName('graph')">Graph</button>
     </nav>
 
     <div id="tab-vpcs" class="tab-panel">
@@ -297,6 +298,24 @@
         </div>
       </div>
       <div class="resource-card"><div id="clustersBody"></div></div>
+    </div>
+
+    <div id="tab-graph" class="tab-panel hidden">
+      <div class="panel-header">
+        <div>
+          <h2>Infrastructure Topology</h2>
+          <p class="panel-desc">Visual overview of your resources and their relationships.</p>
+        </div>
+        <div class="panel-actions">
+          <button class="btn btn-ghost" onclick="refreshAll(this)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+      <div class="resource-card graph-wrap">
+        <div id="graphCanvas"></div>
+      </div>
     </div>
   </div>
 </main>

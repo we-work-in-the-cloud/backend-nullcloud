@@ -781,5 +781,16 @@ code {
 .spinning svg { animation: spin .6s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ---- Graph topology ---- */
+.graph-wrap {
+  overflow: auto;
+  min-height: 320px;
+  padding: 8px;
+}
+
+#graphCanvas {
+  min-height: 280px;
+}
+
 /* ---- Utility ---- */
 .hidden { display: none !important; }

@@ -12,11 +12,11 @@ import (
 // helpers that satisfy the funcStore field signatures
 
 func okGetVPC(_ context.Context, _, _ string) (model.VPC, bool, error) {
-	return model.VPC{ID: "vpc-1", Name: "v"}, true, nil
+	return model.VPC{ID: "vpc-1", Name: "v", Region: "us-east"}, true, nil
 }
 
 func okGetSubnet(_ context.Context, _, _ string) (model.Subnet, bool, error) {
-	return model.Subnet{ID: "sub-1", Name: "s", VPCID: "vpc-1"}, true, nil
+	return model.Subnet{ID: "sub-1", Name: "s", VPCID: "vpc-1", Zone: "us-east-1"}, true, nil
 }
 
 func okGetVSI(_ context.Context, _, _ string) (model.VSI, bool, error) {
@@ -88,7 +88,7 @@ func TestSubnet_List_StoreError(t *testing.T) {
 func TestSubnet_Create_GetVPCStoreError(t *testing.T) {
 	srv := httptest.NewServer(api.NewServer(newErrStore(), nil))
 	defer srv.Close()
-	mustStatus(t, doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"v1"}}`), 500)
+	mustStatus(t, doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"v1"},"zone":"us-east-1"}`), 500)
 }
 
 func TestSubnet_Create_CreateStoreError(t *testing.T) {
@@ -96,7 +96,7 @@ func TestSubnet_Create_CreateStoreError(t *testing.T) {
 	fs.getVPC = okGetVPC
 	srv := httptest.NewServer(api.NewServer(fs, nil))
 	defer srv.Close()
-	mustStatus(t, doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"v1"}}`), 500)
+	mustStatus(t, doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"v1"},"zone":"us-east-1"}`), 500)
 }
 
 func TestSubnet_Get_StoreError(t *testing.T) {

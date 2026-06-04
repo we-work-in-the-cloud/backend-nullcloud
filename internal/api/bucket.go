@@ -46,7 +46,11 @@ func createBucket(s store.Store) http.HandlerFunc {
 			return
 		}
 		if req.Region == "" {
-			req.Region = "us-east-1"
+			req.Region = "us-east"
+		}
+		if !model.IsValidRegion(req.Region) {
+			writeError(w, http.StatusBadRequest, "bad_request", "invalid region")
+			return
 		}
 		id := uid.New("bkt")
 		b := model.Bucket{

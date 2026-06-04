@@ -44,6 +44,9 @@ func TestVPC_Lifecycle(t *testing.T) {
 	if vpc.ID == "" || vpc.Name != "my-vpc" || vpc.Status != "available" || vpc.CRN == "" {
 		t.Fatalf("unexpected vpc: %+v", vpc)
 	}
+	if vpc.Region != "us-east" {
+		t.Fatalf("expected default region us-east, got %q", vpc.Region)
+	}
 
 	// get
 	resp = doRequest(t, "GET", base+"/"+vpc.ID, token, "")
@@ -67,6 +70,34 @@ func TestVPC_Lifecycle(t *testing.T) {
 	// gone
 	resp = doRequest(t, "GET", base+"/"+vpc.ID, token, "")
 	mustStatus(t, resp, 404)
+}
+
+func TestVPC_Region_Custom(t *testing.T) {
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
+	defer srv.Close()
+
+	for _, region := range []string{"us-east", "us-west", "us-central", "eu-central", "eu-east", "eu-west"} {
+		body := `{"name":"vpc","region":"` + region + `"}`
+		resp := doRequest(t, "POST", srv.URL+"/v1/vpcs", "tok", body)
+		mustStatus(t, resp, 201)
+		var vpc model.VPC
+		json.NewDecoder(resp.Body).Decode(&vpc)
+		if vpc.Region != region {
+			t.Errorf("expected region %q, got %q", region, vpc.Region)
+		}
+	}
+}
+
+func TestVPC_Region_Invalid(t *testing.T) {
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
+	defer srv.Close()
+
+	cases := []string{"us-east-1", "europe", "unknown", "US-EAST"}
+	for _, region := range cases {
+		body := `{"name":"vpc","region":"` + region + `"}`
+		resp := doRequest(t, "POST", srv.URL+"/v1/vpcs", "tok", body)
+		mustStatus(t, resp, 400)
+	}
 }
 
 func TestVPC_Create_BadRequest(t *testing.T) {

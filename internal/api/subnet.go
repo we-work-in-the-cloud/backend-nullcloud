@@ -43,18 +43,27 @@ func createSubnet(s store.Store) http.HandlerFunc {
 			VPC  struct {
 				ID string `json:"id"`
 			} `json:"vpc"`
+			Zone string `json:"zone"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" || req.VPC.ID == "" {
 			writeError(w, http.StatusBadRequest, "bad_request", "name and vpc.id are required")
 			return
 		}
-		_, ok, err := s.GetVPC(r.Context(), token, req.VPC.ID)
+		if req.Zone == "" {
+			writeError(w, http.StatusBadRequest, "bad_request", "zone is required")
+			return
+		}
+		vpc, ok, err := s.GetVPC(r.Context(), token, req.VPC.ID)
 		if err != nil {
 			writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
 			return
 		}
 		if !ok {
 			writeError(w, http.StatusNotFound, "not_found", "VPC not found")
+			return
+		}
+		if !model.IsValidZoneForRegion(vpc.Region, req.Zone) {
+			writeError(w, http.StatusBadRequest, "bad_request", fmt.Sprintf("zone %q is not within VPC region %q", req.Zone, vpc.Region))
 			return
 		}
 		id := uid.New("subnet")
@@ -64,6 +73,7 @@ func createSubnet(s store.Store) http.HandlerFunc {
 			Status:    "available",
 			CRN:       fmt.Sprintf("crn:nullcloud:subnet:%s", id),
 			VPCID:     req.VPC.ID,
+			Zone:      req.Zone,
 			CIDRBlock: fmt.Sprintf("10.%d.%d.0/24", rand.Intn(256), rand.Intn(256)),
 			CreatedAt: time.Now().UTC(),
 		}

@@ -12,7 +12,7 @@ import (
 )
 
 func okGetBucket(_ context.Context, _, _ string) (model.Bucket, bool, error) {
-	return model.Bucket{ID: "bkt-1", Name: "bucket", Status: "available", Region: "us-east-1"}, true, nil
+	return model.Bucket{ID: "bkt-1", Name: "bucket", Status: "available", Region: "us-east"}, true, nil
 }
 
 func TestBucket_MissingAuth(t *testing.T) {
@@ -40,11 +40,11 @@ func TestBucket_Lifecycle(t *testing.T) {
 	}
 
 	// create with explicit region
-	resp = doRequest(t, "POST", base, token, `{"name":"my-bucket","region":"eu-west-1"}`)
+	resp = doRequest(t, "POST", base, token, `{"name":"my-bucket","region":"eu-west"}`)
 	mustStatus(t, resp, 201)
 	var bkt model.Bucket
 	json.NewDecoder(resp.Body).Decode(&bkt)
-	if bkt.ID == "" || bkt.Name != "my-bucket" || bkt.Region != "eu-west-1" || bkt.Status != "available" || bkt.CRN == "" {
+	if bkt.ID == "" || bkt.Name != "my-bucket" || bkt.Region != "eu-west" || bkt.Status != "available" || bkt.CRN == "" {
 		t.Fatalf("unexpected bucket: %+v", bkt)
 	}
 
@@ -89,9 +89,17 @@ func TestBucket_Create_DefaultRegion(t *testing.T) {
 	mustStatus(t, resp, 201)
 	var bkt model.Bucket
 	json.NewDecoder(resp.Body).Decode(&bkt)
-	if bkt.Region != "us-east-1" {
-		t.Fatalf("expected default region us-east-1, got %q", bkt.Region)
+	if bkt.Region != "us-east" {
+		t.Fatalf("expected default region us-east, got %q", bkt.Region)
 	}
+}
+
+func TestBucket_Create_InvalidRegion(t *testing.T) {
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
+	defer srv.Close()
+
+	resp := doRequest(t, "POST", srv.URL+"/v1/buckets", "tok", `{"name":"b","region":"us-east-1"}`)
+	mustStatus(t, resp, 400)
 }
 
 func TestBucket_Create_BadRequest(t *testing.T) {

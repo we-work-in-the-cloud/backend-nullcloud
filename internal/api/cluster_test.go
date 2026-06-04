@@ -35,7 +35,7 @@ func TestCluster_Lifecycle(t *testing.T) {
 	json.NewDecoder(resp.Body).Decode(&vpc)
 
 	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token,
-		fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"}}`, vpc.ID))
+		fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"us-east-1"}`, vpc.ID))
 	mustStatus(t, resp, 201)
 	var sub model.Subnet
 	json.NewDecoder(resp.Body).Decode(&sub)
@@ -114,9 +114,9 @@ func TestCluster_MultipleSubnets(t *testing.T) {
 	json.NewDecoder(resp.Body).Decode(&vpc)
 
 	var subIDs []string
-	for i := 0; i < 2; i++ {
+	for i, zone := range []string{"us-east-1", "us-east-2"} {
 		resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token,
-			fmt.Sprintf(`{"name":"sub-%d","vpc":{"id":"%s"}}`, i, vpc.ID))
+			fmt.Sprintf(`{"name":"sub-%d","vpc":{"id":"%s"},"zone":"%s"}`, i, vpc.ID, zone))
 		mustStatus(t, resp, 201)
 		var sub model.Subnet
 		json.NewDecoder(resp.Body).Decode(&sub)

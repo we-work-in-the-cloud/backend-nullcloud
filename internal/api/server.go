@@ -26,6 +26,7 @@ func NewAPIHandler(s store.Store, allowedTokens []string) http.Handler {
 	r.Group(func(r chi.Router) {
 		r.Use(tokenMiddleware(allowedTokens))
 		r.Route("/v1", func(r chi.Router) {
+			r.Get("/regions", listRegions())
 			r.Route("/vpcs", vpcRoutes(s))
 			r.Route("/subnets", subnetRoutes(s))
 			r.Route("/instances", vsiRoutes(s))

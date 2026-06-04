@@ -38,10 +38,18 @@ func createVPC(s store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := tokenFromCtx(r.Context())
 		var req struct {
-			Name string `json:"name"`
+			Name   string `json:"name"`
+			Region string `json:"region"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
 			writeError(w, http.StatusBadRequest, "bad_request", "name is required")
+			return
+		}
+		if req.Region == "" {
+			req.Region = "us-east"
+		}
+		if !model.IsValidRegion(req.Region) {
+			writeError(w, http.StatusBadRequest, "bad_request", "invalid region")
 			return
 		}
 		id := uid.New("vpc")
@@ -50,6 +58,7 @@ func createVPC(s store.Store) http.HandlerFunc {
 			Name:      req.Name,
 			Status:    "available",
 			CRN:       fmt.Sprintf("crn:nullcloud:vpc:%s", id),
+			Region:    req.Region,
 			CreatedAt: time.Now().UTC(),
 		}
 		if err := s.CreateVPC(r.Context(), token, vpc); err != nil {

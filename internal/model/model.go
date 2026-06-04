@@ -7,6 +7,7 @@ type VPC struct {
 	Name      string    `json:"name"`
 	Status    string    `json:"status"`
 	CRN       string    `json:"crn"`
+	Region    string    `json:"region"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
@@ -16,6 +17,7 @@ type Subnet struct {
 	Status    string    `json:"status"`
 	CRN       string    `json:"crn"`
 	VPCID     string    `json:"vpc_id"`
+	Zone      string    `json:"zone"`
 	CIDRBlock string    `json:"cidr_block"`
 	CreatedAt time.Time `json:"created_at"`
 }
