@@ -1,6 +1,6 @@
 # NullCloud - backend
 
-![CI](https://github.com/we-work-in-the-cloud/backend-nullcloud/actions/workflows/release.yml/badge.svg) ![GitHub release](https://img.shields.io/github/v/release/we-work-in-the-cloud/backend-nullcloud) ![Go version](https://img.shields.io/github/go-mod/go-version/we-work-in-the-cloud/backend-nullcloud) ![License](https://img.shields.io/github/license/we-work-in-the-cloud/backend-nullcloud) ![Downloads](https://img.shields.io/github/downloads/we-work-in-the-cloud/backend-nullcloud/total) ![Homebrew Cask](https://img.shields.io/badge/homebrew-cask-orange?logo=homebrew)
+![CI](https://github.com/we-work-in-the-cloud/backend-nullcloud/actions/workflows/release.yml/badge.svg) ![GitHub release](https://img.shields.io/github/v/release/we-work-in-the-cloud/backend-nullcloud) ![Go version](https://img.shields.io/github/go-mod/go-version/we-work-in-the-cloud/backend-nullcloud) ![License](https://img.shields.io/github/license/we-work-in-the-cloud/backend-nullcloud) ![Downloads](https://img.shields.io/github/downloads/we-work-in-the-cloud/backend-nullcloud/total) ![Homebrew Cask](https://img.shields.io/badge/homebrew-cask-orange?logo=homebrew) ![Made with AI](https://img.shields.io/badge/made%20with%20AI%20-yes-green)
 
 A fake cloud provider API — provision VPCs, subnets, and virtual server instances without any real infrastructure. Useful for demos, tests, and Terraform provider development.
 
