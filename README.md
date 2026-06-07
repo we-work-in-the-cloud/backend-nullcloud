@@ -149,20 +149,11 @@ All requests require an `Authorization` header. Any non-empty string works. Reso
 ## Build
 
 ```sh
-make build        # all platforms → dist/
-make build-linux_amd64  # single platform
+make build     # builds for current platform → ./nullcloud-backend
 ```
 
 ## Test
 
 ```sh
 make test
-```
-
-## Release
-
-Push a tag to trigger a GitHub Actions release with pre-built binaries for Linux, macOS, and Windows (amd64/arm64).
-
-```sh
-git tag v1.0.0 && git push origin v1.0.0
 ```
