@@ -23,6 +23,105 @@ brew install --cask nullcloud-backend
 - Managed Database
 - Kubernetes Cluster
 
+### Model Classes
+
+```mermaid
+classDiagram
+
+    namespace Network {
+        class VPC {
+            string id
+            string name
+            string status
+            string crn
+            string region
+            time.Time created_at
+        }
+
+        class Subnet {
+            string id
+            string name
+            string status
+            string crn
+            string vpc_id
+            string zone
+            string cidr_block
+            time.Time created_at
+        }
+
+        class LoadBalancer {
+            string id
+            string name
+            string status
+            string crn
+            string protocol
+            int port
+            LoadBalancerTarget[] targets
+            time.Time created_at
+        }
+
+        class LoadBalancerTarget {
+            string type
+            string id
+        }
+    }
+
+    namespace Compute {
+        class VSI {
+            string id
+            string name
+            string status
+            string crn
+            string subnet_id
+            string profile
+            string image
+            string primary_ip
+            time.Time created_at
+        }
+        class KubernetesCluster {
+            string id
+            string name
+            string status
+            string crn
+            string version
+            int node_count
+            string[] subnet_ids
+            time.Time created_at
+        }
+    }
+
+    namespace Data {
+        class Bucket {
+            string id
+            string name
+            string status
+            string crn
+            string region
+            time.Time created_at
+        }
+
+        class Database {
+            string id
+            string name
+            string status
+            string crn
+            string engine
+            string version
+            string plan
+            string[] subnet_ids
+            time.Time created_at
+        }
+    }
+
+    VPC "1" -- "*" Subnet : contains
+    LoadBalancerTarget --> VSI : points to vsi
+    Subnet "1" -- "*" VSI : hosts
+    LoadBalancerTarget --> KubernetesCluster : points to cluster
+    Subnet "1" -- "*" Database : uses
+    LoadBalancer "1" -- "*" LoadBalancerTarget : targets
+    Subnet "1" -- "*" KubernetesCluster : uses
+```
+
 ## Auth
 
 All requests require an `Authorization` header. Any non-empty string works. Resources are scoped to the token — different tokens are isolated from each other.

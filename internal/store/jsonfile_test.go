@@ -142,7 +142,7 @@ func TestJSONFileStore_VSILifecycle(t *testing.T) {
 
 	s, _ := store.NewJSONFileStore(path)
 
-	vsi := model.VSI{ID: "vsi-1", Name: "v1", SubnetID: "sub-1", VPCID: "vpc-1", Status: "running", CreatedAt: time.Now().UTC()}
+	vsi := model.VSI{ID: "vsi-1", Name: "v1", SubnetID: "sub-1", Status: "running", CreatedAt: time.Now().UTC()}
 	if err := s.CreateVSI(ctx, token, vsi); err != nil {
 		t.Fatal(err)
 	}

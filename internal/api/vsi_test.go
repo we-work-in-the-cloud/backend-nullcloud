@@ -51,7 +51,7 @@ func TestVSI_Lifecycle(t *testing.T) {
 	mustStatus(t, resp, 201)
 	var vsi model.VSI
 	json.NewDecoder(resp.Body).Decode(&vsi)
-	if vsi.ID == "" || vsi.Name != "my-vsi" || vsi.SubnetID != sub.ID || vsi.VPCID != vpc.ID {
+	if vsi.ID == "" || vsi.Name != "my-vsi" || vsi.SubnetID != sub.ID {
 		t.Fatalf("unexpected vsi: %+v", vsi)
 	}
 	if vsi.Status != "running" || vsi.PrimaryIP == "" || vsi.CRN == "" {

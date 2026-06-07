@@ -20,7 +20,7 @@ func okGetSubnet(_ context.Context, _, _ string) (model.Subnet, bool, error) {
 }
 
 func okGetVSI(_ context.Context, _, _ string) (model.VSI, bool, error) {
-	return model.VSI{ID: "vsi-1", Name: "v", SubnetID: "sub-1", VPCID: "vpc-1", Status: "running"}, true, nil
+	return model.VSI{ID: "vsi-1", Name: "v", SubnetID: "sub-1", Status: "running"}, true, nil
 }
 
 func notFoundGetVSI(_ context.Context, _, _ string) (model.VSI, bool, error) {

@@ -89,7 +89,7 @@ func TestMemoryStore_VSILifecycle(t *testing.T) {
 		t.Fatal("expected empty")
 	}
 
-	vsi := model.VSI{ID: "vsi-1", Name: "v1", SubnetID: "sub-1", VPCID: "vpc-1", Status: "running", CreatedAt: time.Now()}
+	vsi := model.VSI{ID: "vsi-1", Name: "v1", SubnetID: "sub-1", Status: "running", CreatedAt: time.Now()}
 	s.CreateVSI(ctx, token, vsi)
 
 	got, ok, _ := s.GetVSI(ctx, token, "vsi-1")
