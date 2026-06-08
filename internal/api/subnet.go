@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"time"
 
@@ -39,11 +38,12 @@ func createSubnet(s store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := tokenFromCtx(r.Context())
 		var req struct {
-			Name string `json:"name"`
-			VPC  struct {
+			Name      string `json:"name"`
+			VPC       struct {
 				ID string `json:"id"`
 			} `json:"vpc"`
-			Zone string `json:"zone"`
+			Zone      string `json:"zone"`
+			CIDRBlock string `json:"cidr_block"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" || req.VPC.ID == "" {
 			writeError(w, http.StatusBadRequest, "bad_request", "name and vpc.id are required")
@@ -51,6 +51,10 @@ func createSubnet(s store.Store) http.HandlerFunc {
 		}
 		if req.Zone == "" {
 			writeError(w, http.StatusBadRequest, "bad_request", "zone is required")
+			return
+		}
+		if req.CIDRBlock == "" {
+			writeError(w, http.StatusBadRequest, "bad_request", "cidr_block is required")
 			return
 		}
 		vpc, ok, err := s.GetVPC(r.Context(), token, req.VPC.ID)
@@ -74,7 +78,7 @@ func createSubnet(s store.Store) http.HandlerFunc {
 			CRN:       fmt.Sprintf("crn:nullcloud:subnet:%s", id),
 			VPCID:     req.VPC.ID,
 			Zone:      req.Zone,
-			CIDRBlock: fmt.Sprintf("10.%d.%d.0/24", rand.Intn(256), rand.Intn(256)),
+			CIDRBlock: req.CIDRBlock,
 			CreatedAt: time.Now().UTC(),
 		}
 		if err := s.CreateSubnet(r.Context(), token, sub); err != nil {

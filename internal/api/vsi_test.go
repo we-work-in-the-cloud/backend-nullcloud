@@ -34,7 +34,7 @@ func TestVSI_Lifecycle(t *testing.T) {
 
 	// create Subnet
 	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token,
-		fmt.Sprintf(`{"name":"my-subnet","vpc":{"id":"%s"},"zone":"us-east-1"}`, vpc.ID))
+		fmt.Sprintf(`{"name":"my-subnet","vpc":{"id":"%s"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`, vpc.ID))
 	mustStatus(t, resp, 201)
 	var sub model.Subnet
 	json.NewDecoder(resp.Body).Decode(&sub)
@@ -109,7 +109,7 @@ func TestVSI_IPAllocation(t *testing.T) {
 	json.NewDecoder(resp.Body).Decode(&vpc)
 
 	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token,
-		fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"us-east-2"}`, vpc.ID))
+		fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"us-east-2","cidr_block":"10.0.0.0/24"}`, vpc.ID))
 	mustStatus(t, resp, 201)
 	var sub model.Subnet
 	json.NewDecoder(resp.Body).Decode(&sub)

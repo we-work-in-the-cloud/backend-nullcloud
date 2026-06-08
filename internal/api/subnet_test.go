@@ -38,12 +38,12 @@ func TestSubnet_Lifecycle(t *testing.T) {
 	mustStatus(t, resp, 200)
 
 	// create with zone in VPC's region
-	body := fmt.Sprintf(`{"name":"my-subnet","vpc":{"id":"%s"},"zone":"us-east-1"}`, vpc.ID)
+	body := fmt.Sprintf(`{"name":"my-subnet","vpc":{"id":"%s"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`, vpc.ID)
 	resp = doRequest(t, "POST", base, token, body)
 	mustStatus(t, resp, 201)
 	var sub model.Subnet
 	json.NewDecoder(resp.Body).Decode(&sub)
-	if sub.ID == "" || sub.Name != "my-subnet" || sub.VPCID != vpc.ID || sub.CIDRBlock == "" || sub.CRN == "" {
+	if sub.ID == "" || sub.Name != "my-subnet" || sub.VPCID != vpc.ID || sub.CIDRBlock != "10.0.0.0/24" || sub.CRN == "" {
 		t.Fatalf("unexpected subnet: %+v", sub)
 	}
 	if sub.Zone != "us-east-1" {
@@ -78,8 +78,8 @@ func TestSubnet_Zone_AllZonesInRegion(t *testing.T) {
 	var vpc model.VPC
 	json.NewDecoder(resp.Body).Decode(&vpc)
 
-	for _, zone := range []string{"eu-west-1", "eu-west-2", "eu-west-3"} {
-		body := fmt.Sprintf(`{"name":"sub-%s","vpc":{"id":"%s"},"zone":"%s"}`, zone, vpc.ID, zone)
+	for i, zone := range []string{"eu-west-1", "eu-west-2", "eu-west-3"} {
+		body := fmt.Sprintf(`{"name":"sub-%s","vpc":{"id":"%s"},"zone":"%s","cidr_block":"10.%d.0.0/24"}`, zone, vpc.ID, zone, i)
 		resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, body)
 		mustStatus(t, resp, 201)
 		var sub model.Subnet
@@ -103,7 +103,7 @@ func TestSubnet_Zone_WrongRegion(t *testing.T) {
 	json.NewDecoder(resp.Body).Decode(&vpc)
 
 	for _, zone := range []string{"us-east-1", "eu-west-2", "us-central-3", "us-west"} {
-		body := fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"%s"}`, vpc.ID, zone)
+		body := fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"%s","cidr_block":"10.0.0.0/24"}`, vpc.ID, zone)
 		resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, body)
 		mustStatus(t, resp, 400)
 	}
@@ -120,7 +120,7 @@ func TestSubnet_Create_MissingZone(t *testing.T) {
 	var vpc model.VPC
 	json.NewDecoder(resp.Body).Decode(&vpc)
 
-	body := fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"}}`, vpc.ID)
+	body := fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"cidr_block":"10.0.0.0/24"}`, vpc.ID)
 	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, body)
 	mustStatus(t, resp, 400)
 }
@@ -130,7 +130,7 @@ func TestSubnet_Create_InvalidVPC(t *testing.T) {
 	defer srv.Close()
 
 	resp := doRequest(t, "POST", srv.URL+"/v1/subnets", "tok",
-		`{"name":"s","vpc":{"id":"nonexistent-vpc"},"zone":"us-east-1"}`)
+		`{"name":"s","vpc":{"id":"nonexistent-vpc"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`)
 	mustStatus(t, resp, 404)
 }
 
@@ -139,14 +139,18 @@ func TestSubnet_Create_BadRequest(t *testing.T) {
 	defer srv.Close()
 
 	// missing name
-	resp := doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"vpc":{"id":"x"},"zone":"us-east-1"}`)
+	resp := doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"vpc":{"id":"x"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`)
 	mustStatus(t, resp, 400)
 
 	// missing vpc
-	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","zone":"us-east-1"}`)
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","zone":"us-east-1","cidr_block":"10.0.0.0/24"}`)
 	mustStatus(t, resp, 400)
 
 	// missing zone
-	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"x"}}`)
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"x"},"cidr_block":"10.0.0.0/24"}`)
+	mustStatus(t, resp, 400)
+
+	// missing cidr_block
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"x"},"zone":"us-east-1"}`)
 	mustStatus(t, resp, 400)
 }

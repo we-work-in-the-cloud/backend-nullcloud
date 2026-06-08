@@ -65,7 +65,7 @@ func TestSubnet_Rename(t *testing.T) {
 	var vpc model.VPC
 	json.NewDecoder(resp.Body).Decode(&vpc)
 
-	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, `{"name":"sub","vpc":{"id":"`+vpc.ID+`"},"zone":"us-east-1"}`)
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, `{"name":"sub","vpc":{"id":"`+vpc.ID+`"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`)
 	mustStatus(t, resp, 201)
 	var sub model.Subnet
 	json.NewDecoder(resp.Body).Decode(&sub)
@@ -115,7 +115,7 @@ func TestVSI_Rename(t *testing.T) {
 	var vpc model.VPC
 	json.NewDecoder(resp.Body).Decode(&vpc)
 
-	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, `{"name":"sub","vpc":{"id":"`+vpc.ID+`"},"zone":"us-east-2"}`)
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, `{"name":"sub","vpc":{"id":"`+vpc.ID+`"},"zone":"us-east-2","cidr_block":"10.0.0.0/24"}`)
 	mustStatus(t, resp, 201)
 	var sub model.Subnet
 	json.NewDecoder(resp.Body).Decode(&sub)

@@ -88,7 +88,7 @@ func TestSubnet_List_StoreError(t *testing.T) {
 func TestSubnet_Create_GetVPCStoreError(t *testing.T) {
 	srv := httptest.NewServer(api.NewServer(newErrStore(), nil))
 	defer srv.Close()
-	mustStatus(t, doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"v1"},"zone":"us-east-1"}`), 500)
+	mustStatus(t, doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"v1"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`), 500)
 }
 
 func TestSubnet_Create_CreateStoreError(t *testing.T) {
@@ -96,7 +96,7 @@ func TestSubnet_Create_CreateStoreError(t *testing.T) {
 	fs.getVPC = okGetVPC
 	srv := httptest.NewServer(api.NewServer(fs, nil))
 	defer srv.Close()
-	mustStatus(t, doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"v1"},"zone":"us-east-1"}`), 500)
+	mustStatus(t, doRequest(t, "POST", srv.URL+"/v1/subnets", "tok", `{"name":"s","vpc":{"id":"v1"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`), 500)
 }
 
 func TestSubnet_Get_StoreError(t *testing.T) {

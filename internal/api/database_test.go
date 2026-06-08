@@ -35,7 +35,7 @@ func TestDatabase_Lifecycle(t *testing.T) {
 	json.NewDecoder(resp.Body).Decode(&vpc)
 
 	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token,
-		fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"us-east-1"}`, vpc.ID))
+		fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`, vpc.ID))
 	mustStatus(t, resp, 201)
 	var sub model.Subnet
 	json.NewDecoder(resp.Body).Decode(&sub)
@@ -138,7 +138,7 @@ func TestDatabase_AllEngines(t *testing.T) {
 	json.NewDecoder(resp.Body).Decode(&vpc)
 
 	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token,
-		fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"us-east-3"}`, vpc.ID))
+		fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"us-east-3","cidr_block":"10.0.0.0/24"}`, vpc.ID))
 	mustStatus(t, resp, 201)
 	var sub model.Subnet
 	json.NewDecoder(resp.Body).Decode(&sub)
