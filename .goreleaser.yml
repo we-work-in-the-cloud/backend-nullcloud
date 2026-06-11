@@ -4,6 +4,7 @@ project_name: nullcloud-backend
 
 before:
   hooks:
+    - make ui-build
     - go mod tidy
 
 builds:

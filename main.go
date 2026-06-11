@@ -64,7 +64,7 @@ func main() {
 	}
 
 	apiAddr := net.JoinHostPort(host, port)
-	uiAddr  := net.JoinHostPort(resolvedUIHost, resolvedUIPort)
+	uiAddr := net.JoinHostPort(resolvedUIHost, resolvedUIPort)
 
 	printStartupURLs(host, port, resolvedUIHost, resolvedUIPort)
 

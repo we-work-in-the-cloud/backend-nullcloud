@@ -11,12 +11,12 @@ import (
 )
 
 type fileData struct {
-	VPCs     map[string]map[string]model.VPC              `json:"vpcs"`
-	Subnets  map[string]map[string]model.Subnet           `json:"subnets"`
-	VSIs     map[string]map[string]model.VSI              `json:"vsis"`
-	LBs      map[string]map[string]model.LoadBalancer     `json:"load_balancers"`
-	Buckets  map[string]map[string]model.Bucket           `json:"buckets"`
-	DBs      map[string]map[string]model.Database         `json:"databases"`
+	VPCs     map[string]map[string]model.VPC               `json:"vpcs"`
+	Subnets  map[string]map[string]model.Subnet            `json:"subnets"`
+	VSIs     map[string]map[string]model.VSI               `json:"vsis"`
+	LBs      map[string]map[string]model.LoadBalancer      `json:"load_balancers"`
+	Buckets  map[string]map[string]model.Bucket            `json:"buckets"`
+	DBs      map[string]map[string]model.Database          `json:"databases"`
 	Clusters map[string]map[string]model.KubernetesCluster `json:"kubernetes_clusters"`
 }
 

@@ -12,10 +12,11 @@ test:
 	go test -v -cover -timeout=120s -parallel=10 ./...
 
 ui-build:
+	cd internal/ui && npm run build
 	mkdir -p internal/api/ui-build
-	cp internal/ui/index.html internal/api/ui-build/index.html
-	cp internal/ui/style.css internal/api/ui-build/style.css
-	cp internal/ui/app.js internal/api/ui-build/app.js
+	cp internal/ui/build/index.html internal/api/ui-build/index.html
+	cp internal/ui/build/app.js internal/api/ui-build/app.js
+	touch internal/api/ui-build/style.css
 
 build: ui-build
 	CGO_ENABLED=0 go build -trimpath -o nullcloud-backend .

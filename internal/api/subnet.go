@@ -38,8 +38,8 @@ func createSubnet(s store.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := tokenFromCtx(r.Context())
 		var req struct {
-			Name      string `json:"name"`
-			VPC       struct {
+			Name string `json:"name"`
+			VPC  struct {
 				ID string `json:"id"`
 			} `json:"vpc"`
 			Zone      string `json:"zone"`
