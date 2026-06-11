@@ -8,7 +8,7 @@ fmt:
 lint:
 	golangci-lint run
 
-test:
+test: ui-build
 	go test -v -cover -timeout=120s -parallel=10 ./...
 
 ui-build:
