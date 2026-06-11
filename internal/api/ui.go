@@ -5,13 +5,13 @@ import (
 	"net/http"
 )
 
-//go:embed ui.html
+//go:embed ui-build/index.html
 var uiHTML []byte
 
-//go:embed ui.css
+//go:embed ui-build/style.css
 var uiCSS []byte
 
-//go:embed ui.js
+//go:embed ui-build/app.js
 var uiJS []byte
 
 func uiHandler() http.HandlerFunc {

@@ -2,3 +2,4 @@ dist
 store.json
 nullcloud-backend
 coverage.out
+internal/api/ui-build/
