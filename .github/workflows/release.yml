@@ -19,12 +19,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: internal/ui/package-lock.json
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: true
           cache-dependency-path: go.sum
-      - run: go test -v -cover -timeout=120s -parallel=10 ./...
+      - run: make test
 
   release:
     needs: test
