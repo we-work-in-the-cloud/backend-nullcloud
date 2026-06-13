@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/we-work-in-the-cloud/nullcloud/backend/internal/api"
@@ -67,6 +68,10 @@ func TestDatabase_Lifecycle(t *testing.T) {
 	}
 	if len(db.SubnetIDs) != 1 || db.SubnetIDs[0] != sub.ID {
 		t.Fatalf("unexpected subnet_ids: %+v", db.SubnetIDs)
+	}
+	expectedEndpoint := fmt.Sprintf("%s.db.nullcloud.internal:5432", db.ID)
+	if db.Endpoint != expectedEndpoint {
+		t.Fatalf("expected endpoint %q, got %q", expectedEndpoint, db.Endpoint)
 	}
 
 	// get
@@ -143,10 +148,24 @@ func TestDatabase_AllEngines(t *testing.T) {
 	var sub model.Subnet
 	json.NewDecoder(resp.Body).Decode(&sub)
 
+	enginePorts := map[string]string{
+		"postgres": "5432",
+		"mysql":    "3306",
+		"mariadb":  "3306",
+	}
 	for _, engine := range []string{"postgres", "mysql", "mariadb"} {
 		body := fmt.Sprintf(`{"name":"db-%s","engine":"%s","version":"8","plan":"small","subnet_ids":["%s"]}`, engine, engine, sub.ID)
 		resp := doRequest(t, "POST", srv.URL+"/v1/databases", token, body)
 		mustStatus(t, resp, 201)
+		var db model.Database
+		json.NewDecoder(resp.Body).Decode(&db)
+		expectedSuffix := fmt.Sprintf(".db.nullcloud.internal:%s", enginePorts[engine])
+		if db.Endpoint == "" {
+			t.Fatalf("engine %s: expected endpoint, got empty", engine)
+		}
+		if !strings.HasSuffix(db.Endpoint, expectedSuffix) {
+			t.Fatalf("engine %s: expected endpoint ending in %q, got %q", engine, expectedSuffix, db.Endpoint)
+		}
 	}
 }
 

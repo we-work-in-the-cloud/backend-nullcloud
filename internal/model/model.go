@@ -69,6 +69,7 @@ type Database struct {
 	Plan      string    `json:"plan"`
 	SubnetIDs []string  `json:"subnet_ids"`
 	CreatedAt time.Time `json:"created_at"`
+	Endpoint  string    `json:"endpoint"`
 }
 
 type KubernetesCluster struct {

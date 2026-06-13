@@ -12,6 +12,15 @@ import (
 	"github.com/we-work-in-the-cloud/nullcloud/backend/internal/uid"
 )
 
+func computeDatabaseEndpoint(id, engine string) string {
+	port := 5432
+	switch engine {
+	case "mysql", "mariadb":
+		port = 3306
+	}
+	return fmt.Sprintf("%s.db.nullcloud.internal:%d", id, port)
+}
+
 func databaseRoutes(s store.Store) func(chi.Router) {
 	return func(r chi.Router) {
 		r.Get("/", listDatabases(s))
@@ -84,6 +93,7 @@ func createDatabase(s store.Store) http.HandlerFunc {
 			Plan:      req.Plan,
 			SubnetIDs: req.SubnetIDs,
 			CreatedAt: time.Now().UTC(),
+			Endpoint:  computeDatabaseEndpoint(id, req.Engine),
 		}
 		if err := s.CreateDatabase(r.Context(), token, db); err != nil {
 			writeError(w, http.StatusInternalServerError, "internal_error", err.Error())

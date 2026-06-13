@@ -65,6 +65,7 @@ export interface Database {
   plan: string
   subnet_ids: string[]
   created_at: string
+  endpoint: string
 }
 
 export interface KubernetesCluster {
