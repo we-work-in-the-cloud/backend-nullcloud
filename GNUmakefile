@@ -9,7 +9,9 @@ lint:
 	golangci-lint run
 
 test: ui-build
-	go test -v -cover -timeout=120s -parallel=10 ./...
+	go test -v -cover -coverprofile=coverage.out -timeout=120s -parallel=10 ./...
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated: coverage.html"
 
 ui-build:
 	cd internal/ui && npm ci && npm run build
