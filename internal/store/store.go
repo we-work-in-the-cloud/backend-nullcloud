@@ -33,6 +33,7 @@ type Store interface {
 	ListLoadBalancers(ctx context.Context, token string) ([]model.LoadBalancer, error)
 	DeleteLoadBalancer(ctx context.Context, token, id string) error
 	RenameLoadBalancer(ctx context.Context, token, id, name string) error
+	UpdateLoadBalancerTargets(ctx context.Context, token, id string, targets []model.LoadBalancerTarget) error
 
 	CreateBucket(ctx context.Context, token string, b model.Bucket) error
 	GetBucket(ctx context.Context, token, id string) (model.Bucket, bool, error)
@@ -45,6 +46,7 @@ type Store interface {
 	ListDatabases(ctx context.Context, token string) ([]model.Database, error)
 	DeleteDatabase(ctx context.Context, token, id string) error
 	RenameDatabase(ctx context.Context, token, id, name string) error
+	UpdateDatabasePlan(ctx context.Context, token, id, plan string) error
 
 	CreateKubernetesCluster(ctx context.Context, token string, c model.KubernetesCluster) error
 	GetKubernetesCluster(ctx context.Context, token, id string) (model.KubernetesCluster, bool, error)

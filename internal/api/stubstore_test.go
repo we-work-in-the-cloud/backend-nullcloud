@@ -30,11 +30,12 @@ type funcStore struct {
 	updateVSIStatus func(context.Context, string, string, string) error
 	renameVSI       func(context.Context, string, string, string) error
 
-	createLoadBalancer func(context.Context, string, model.LoadBalancer) error
-	getLoadBalancer    func(context.Context, string, string) (model.LoadBalancer, bool, error)
-	listLoadBalancers  func(context.Context, string) ([]model.LoadBalancer, error)
-	deleteLoadBalancer func(context.Context, string, string) error
-	renameLoadBalancer func(context.Context, string, string, string) error
+	createLoadBalancer        func(context.Context, string, model.LoadBalancer) error
+	getLoadBalancer           func(context.Context, string, string) (model.LoadBalancer, bool, error)
+	listLoadBalancers         func(context.Context, string) ([]model.LoadBalancer, error)
+	deleteLoadBalancer        func(context.Context, string, string) error
+	renameLoadBalancer        func(context.Context, string, string, string) error
+	updateLoadBalancerTargets func(context.Context, string, string, []model.LoadBalancerTarget) error
 
 	createBucket func(context.Context, string, model.Bucket) error
 	getBucket    func(context.Context, string, string) (model.Bucket, bool, error)
@@ -42,11 +43,12 @@ type funcStore struct {
 	deleteBucket func(context.Context, string, string) error
 	renameBucket func(context.Context, string, string, string) error
 
-	createDatabase func(context.Context, string, model.Database) error
-	getDatabase    func(context.Context, string, string) (model.Database, bool, error)
-	listDatabases  func(context.Context, string) ([]model.Database, error)
-	deleteDatabase func(context.Context, string, string) error
-	renameDatabase func(context.Context, string, string, string) error
+	createDatabase     func(context.Context, string, model.Database) error
+	getDatabase        func(context.Context, string, string) (model.Database, bool, error)
+	listDatabases      func(context.Context, string) ([]model.Database, error)
+	deleteDatabase     func(context.Context, string, string) error
+	renameDatabase     func(context.Context, string, string, string) error
+	updateDatabasePlan func(context.Context, string, string, string) error
 
 	createKubernetesCluster func(context.Context, string, model.KubernetesCluster) error
 	getKubernetesCluster    func(context.Context, string, string) (model.KubernetesCluster, bool, error)
@@ -80,9 +82,10 @@ func newErrStore() *funcStore {
 		getLoadBalancer: func(context.Context, string, string) (model.LoadBalancer, bool, error) {
 			return model.LoadBalancer{}, false, errStub
 		},
-		listLoadBalancers:  func(context.Context, string) ([]model.LoadBalancer, error) { return nil, errStub },
-		deleteLoadBalancer: func(context.Context, string, string) error { return errStub },
-		renameLoadBalancer: func(context.Context, string, string, string) error { return errStub },
+		listLoadBalancers:         func(context.Context, string) ([]model.LoadBalancer, error) { return nil, errStub },
+		deleteLoadBalancer:        func(context.Context, string, string) error { return errStub },
+		renameLoadBalancer:        func(context.Context, string, string, string) error { return errStub },
+		updateLoadBalancerTargets: func(context.Context, string, string, []model.LoadBalancerTarget) error { return errStub },
 
 		createBucket: func(context.Context, string, model.Bucket) error { return errStub },
 		getBucket: func(context.Context, string, string) (model.Bucket, bool, error) {
@@ -96,9 +99,10 @@ func newErrStore() *funcStore {
 		getDatabase: func(context.Context, string, string) (model.Database, bool, error) {
 			return model.Database{}, false, errStub
 		},
-		listDatabases:  func(context.Context, string) ([]model.Database, error) { return nil, errStub },
-		deleteDatabase: func(context.Context, string, string) error { return errStub },
-		renameDatabase: func(context.Context, string, string, string) error { return errStub },
+		listDatabases:     func(context.Context, string) ([]model.Database, error) { return nil, errStub },
+		deleteDatabase:    func(context.Context, string, string) error { return errStub },
+		renameDatabase:    func(context.Context, string, string, string) error { return errStub },
+		updateDatabasePlan: func(context.Context, string, string, string) error { return errStub },
 
 		createKubernetesCluster: func(context.Context, string, model.KubernetesCluster) error { return errStub },
 		getKubernetesCluster: func(context.Context, string, string) (model.KubernetesCluster, bool, error) {
@@ -221,4 +225,12 @@ func (s *funcStore) DeleteKubernetesCluster(ctx context.Context, token, id strin
 }
 func (s *funcStore) RenameKubernetesCluster(ctx context.Context, token, id, name string) error {
 	return s.renameKubernetesCluster(ctx, token, id, name)
+}
+
+func (s *funcStore) UpdateDatabasePlan(ctx context.Context, token, id, plan string) error {
+	return s.updateDatabasePlan(ctx, token, id, plan)
+}
+
+func (s *funcStore) UpdateLoadBalancerTargets(ctx context.Context, token, id string, targets []model.LoadBalancerTarget) error {
+	return s.updateLoadBalancerTargets(ctx, token, id, targets)
 }

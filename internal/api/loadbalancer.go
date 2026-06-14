@@ -124,11 +124,46 @@ func updateLoadBalancer(s store.Store) http.HandlerFunc {
 		token := tokenFromCtx(r.Context())
 		id := chi.URLParam(r, "id")
 		var req struct {
-			Name string `json:"name"`
+			Name    string `json:"name"`
+			Targets []struct {
+				Type string `json:"type"`
+				ID   string `json:"id"`
+			} `json:"targets"`
 		}
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
-			writeError(w, http.StatusBadRequest, "bad_request", "name is required")
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeError(w, http.StatusBadRequest, "bad_request", "invalid request body")
 			return
+		}
+		if req.Name == "" && req.Targets == nil {
+			writeError(w, http.StatusBadRequest, "bad_request", "name or targets is required")
+			return
+		}
+		var targets []model.LoadBalancerTarget
+		if req.Targets != nil {
+			for _, t := range req.Targets {
+				switch t.Type {
+				case "cluster":
+					if _, ok, err := s.GetKubernetesCluster(r.Context(), token, t.ID); err != nil {
+						writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+						return
+					} else if !ok {
+						writeError(w, http.StatusNotFound, "not_found", fmt.Sprintf("Cluster %s not found", t.ID))
+						return
+					}
+				case "vsi":
+					if _, ok, err := s.GetVSI(r.Context(), token, t.ID); err != nil {
+						writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+						return
+					} else if !ok {
+						writeError(w, http.StatusNotFound, "not_found", fmt.Sprintf("VSI %s not found", t.ID))
+						return
+					}
+				default:
+					writeError(w, http.StatusBadRequest, "bad_request", fmt.Sprintf("target type must be cluster or vsi, got %q", t.Type))
+					return
+				}
+				targets = append(targets, model.LoadBalancerTarget{Type: t.Type, ID: t.ID})
+			}
 		}
 		lb, ok, err := s.GetLoadBalancer(r.Context(), token, id)
 		if err != nil {
@@ -139,11 +174,20 @@ func updateLoadBalancer(s store.Store) http.HandlerFunc {
 			writeError(w, http.StatusNotFound, "not_found", "Load balancer not found")
 			return
 		}
-		if err := s.RenameLoadBalancer(r.Context(), token, id, req.Name); err != nil {
-			writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
-			return
+		if req.Name != "" {
+			if err := s.RenameLoadBalancer(r.Context(), token, id, req.Name); err != nil {
+				writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+				return
+			}
+			lb.Name = req.Name
 		}
-		lb.Name = req.Name
+		if req.Targets != nil {
+			if err := s.UpdateLoadBalancerTargets(r.Context(), token, id, targets); err != nil {
+				writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+				return
+			}
+			lb.Targets = targets
+		}
 		writeJSON(w, http.StatusOK, lb)
 	}
 }

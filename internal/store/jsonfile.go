@@ -283,6 +283,18 @@ func (s *JSONFileStore) RenameLoadBalancer(_ context.Context, token, id, name st
 	return s.flush()
 }
 
+func (s *JSONFileStore) UpdateLoadBalancerTargets(_ context.Context, token, id string, targets []model.LoadBalancerTarget) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.data.LBs[token][id]
+	if !ok {
+		return fmt.Errorf("LoadBalancer %s not found", id)
+	}
+	v.Targets = targets
+	s.data.LBs[token][id] = v
+	return s.flush()
+}
+
 func (s *JSONFileStore) CreateBucket(_ context.Context, token string, b model.Bucket) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -373,6 +385,18 @@ func (s *JSONFileStore) RenameDatabase(_ context.Context, token, id, name string
 		return fmt.Errorf("Database %s not found", id)
 	}
 	v.Name = name
+	s.data.DBs[token][id] = v
+	return s.flush()
+}
+
+func (s *JSONFileStore) UpdateDatabasePlan(_ context.Context, token, id, plan string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.data.DBs[token][id]
+	if !ok {
+		return fmt.Errorf("Database %s not found", id)
+	}
+	v.Plan = plan
 	s.data.DBs[token][id] = v
 	return s.flush()
 }

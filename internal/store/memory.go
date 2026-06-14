@@ -231,6 +231,18 @@ func (s *MemoryStore) RenameLoadBalancer(_ context.Context, token, id, name stri
 	return nil
 }
 
+func (s *MemoryStore) UpdateLoadBalancerTargets(_ context.Context, token, id string, targets []model.LoadBalancerTarget) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.lbs[token][id]
+	if !ok {
+		return fmt.Errorf("LoadBalancer %s not found", id)
+	}
+	v.Targets = targets
+	s.lbs[token][id] = v
+	return nil
+}
+
 func (s *MemoryStore) CreateBucket(_ context.Context, token string, b model.Bucket) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -321,6 +333,18 @@ func (s *MemoryStore) RenameDatabase(_ context.Context, token, id, name string) 
 		return fmt.Errorf("Database %s not found", id)
 	}
 	v.Name = name
+	s.dbs[token][id] = v
+	return nil
+}
+
+func (s *MemoryStore) UpdateDatabasePlan(_ context.Context, token, id, plan string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.dbs[token][id]
+	if !ok {
+		return fmt.Errorf("Database %s not found", id)
+	}
+	v.Plan = plan
 	s.dbs[token][id] = v
 	return nil
 }

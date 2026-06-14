@@ -257,3 +257,59 @@ func TestLB_Create_GetClusterStoreError(t *testing.T) {
 	mustStatus(t, doRequest(t, "POST", srv.URL+"/v1/loadbalancers", "tok",
 		`{"name":"lb","protocol":"tcp","port":80,"targets":[{"type":"cluster","id":"k8s-1"}]}`), 500)
 }
+
+func TestLB_TargetsUpdate(t *testing.T) {
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
+	defer srv.Close()
+
+	token := "test-token"
+
+	// create VPC + Subnet
+	resp := doRequest(t, "POST", srv.URL+"/v1/vpcs", token, `{"name":"vpc"}`)
+	mustStatus(t, resp, 201)
+	var vpc model.VPC
+	json.NewDecoder(resp.Body).Decode(&vpc)
+
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token,
+		fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`, vpc.ID))
+	mustStatus(t, resp, 201)
+	var sub model.Subnet
+	json.NewDecoder(resp.Body).Decode(&sub)
+
+	// create VSI to use as target
+	resp = doRequest(t, "POST", srv.URL+"/v1/instances", token,
+		fmt.Sprintf(`{"name":"vsi","subnet":{"id":"%s"},"profile":{"name":"cx2-2x4"},"image":{"id":"ubuntu-20.04"}}`, sub.ID))
+	mustStatus(t, resp, 201)
+	var vsi model.VSI
+	json.NewDecoder(resp.Body).Decode(&vsi)
+
+	base := srv.URL + "/v1/loadbalancers"
+
+	// create load balancer without targets
+	resp = doRequest(t, "POST", base, token, `{"name":"my-lb","protocol":"tcp","port":80}`)
+	mustStatus(t, resp, 201)
+	var lb model.LoadBalancer
+	json.NewDecoder(resp.Body).Decode(&lb)
+	if lb.Targets != nil {
+		t.Fatalf("expected nil targets, got %+v", lb.Targets)
+	}
+
+	// update with targets
+	resp = doRequest(t, "PATCH", base+"/"+lb.ID, token,
+		fmt.Sprintf(`{"targets":[{"type":"vsi","id":"%s"}]}`, vsi.ID))
+	mustStatus(t, resp, 200)
+	var updated model.LoadBalancer
+	json.NewDecoder(resp.Body).Decode(&updated)
+	if len(updated.Targets) != 1 || updated.Targets[0].Type != "vsi" || updated.Targets[0].ID != vsi.ID {
+		t.Fatalf("unexpected targets: %+v", updated.Targets)
+	}
+
+	// verify with get
+	resp = doRequest(t, "GET", base+"/"+lb.ID, token, "")
+	mustStatus(t, resp, 200)
+	var fetched model.LoadBalancer
+	json.NewDecoder(resp.Body).Decode(&fetched)
+	if len(fetched.Targets) != 1 || fetched.Targets[0].Type != "vsi" || fetched.Targets[0].ID != vsi.ID {
+		t.Fatalf("unexpected targets: %+v", fetched.Targets)
+	}
+}

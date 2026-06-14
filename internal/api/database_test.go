@@ -244,3 +244,52 @@ func TestDatabase_Rename_RenameStoreError(t *testing.T) {
 	defer srv.Close()
 	mustStatus(t, doRequest(t, "PATCH", srv.URL+"/v1/databases/db-1", "tok", `{"name":"x"}`), 500)
 }
+
+func TestDatabase_PlanUpdate(t *testing.T) {
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
+	defer srv.Close()
+
+	token := "test-token"
+
+	// create VPC + Subnet
+	resp := doRequest(t, "POST", srv.URL+"/v1/vpcs", token, `{"name":"vpc"}`)
+	mustStatus(t, resp, 201)
+	var vpc model.VPC
+	json.NewDecoder(resp.Body).Decode(&vpc)
+
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token,
+		fmt.Sprintf(`{"name":"sub","vpc":{"id":"%s"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`, vpc.ID))
+	mustStatus(t, resp, 201)
+	var sub model.Subnet
+	json.NewDecoder(resp.Body).Decode(&sub)
+
+	base := srv.URL + "/v1/databases"
+
+	// create database with small plan
+	body := fmt.Sprintf(`{"name":"my-db","engine":"postgres","version":"15","plan":"small","subnet_ids":["%s"]}`, sub.ID)
+	resp = doRequest(t, "POST", base, token, body)
+	mustStatus(t, resp, 201)
+	var db model.Database
+	json.NewDecoder(resp.Body).Decode(&db)
+	if db.Plan != "small" {
+		t.Fatalf("expected plan small, got %q", db.Plan)
+	}
+
+	// update plan to large
+	resp = doRequest(t, "PATCH", base+"/"+db.ID, token, `{"plan":"large"}`)
+	mustStatus(t, resp, 200)
+	var updated model.Database
+	json.NewDecoder(resp.Body).Decode(&updated)
+	if updated.Plan != "large" {
+		t.Fatalf("expected plan large, got %q", updated.Plan)
+	}
+
+	// verify with get
+	resp = doRequest(t, "GET", base+"/"+db.ID, token, "")
+	mustStatus(t, resp, 200)
+	var fetched model.Database
+	json.NewDecoder(resp.Body).Decode(&fetched)
+	if fetched.Plan != "large" {
+		t.Fatalf("expected plan large, got %q", fetched.Plan)
+	}
+}

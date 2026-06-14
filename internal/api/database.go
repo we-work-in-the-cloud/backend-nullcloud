@@ -126,9 +126,18 @@ func updateDatabase(s store.Store) http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		var req struct {
 			Name string `json:"name"`
+			Plan string `json:"plan"`
 		}
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
-			writeError(w, http.StatusBadRequest, "bad_request", "name is required")
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeError(w, http.StatusBadRequest, "bad_request", "invalid request body")
+			return
+		}
+		if req.Name == "" && req.Plan == "" {
+			writeError(w, http.StatusBadRequest, "bad_request", "name or plan is required")
+			return
+		}
+		if req.Plan != "" && req.Plan != "small" && req.Plan != "medium" && req.Plan != "large" {
+			writeError(w, http.StatusBadRequest, "bad_request", "plan must be small, medium, or large")
 			return
 		}
 		db, ok, err := s.GetDatabase(r.Context(), token, id)
@@ -140,11 +149,20 @@ func updateDatabase(s store.Store) http.HandlerFunc {
 			writeError(w, http.StatusNotFound, "not_found", "Database not found")
 			return
 		}
-		if err := s.RenameDatabase(r.Context(), token, id, req.Name); err != nil {
-			writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
-			return
+		if req.Name != "" {
+			if err := s.RenameDatabase(r.Context(), token, id, req.Name); err != nil {
+				writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+				return
+			}
+			db.Name = req.Name
 		}
-		db.Name = req.Name
+		if req.Plan != "" {
+			if err := s.UpdateDatabasePlan(r.Context(), token, id, req.Plan); err != nil {
+				writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+				return
+			}
+			db.Plan = req.Plan
+		}
 		writeJSON(w, http.StatusOK, db)
 	}
 }
