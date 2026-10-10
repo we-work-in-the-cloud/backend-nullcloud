@@ -1,0 +1,9 @@
+.git
+.gitignore
+**/node_modules
+internal/ui/build
+internal/api/ui-build
+coverage.out
+coverage.html
+dist
+nullcloud-backend

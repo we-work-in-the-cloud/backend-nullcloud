@@ -146,6 +146,27 @@ All requests require an `Authorization` header. Any non-empty string works. Reso
 ./nullcloud-backend --port 9090
 ```
 
+## Docker
+
+Build the minimal distroless image from the repository root:
+
+```sh
+docker build -t nullcloud-backend:local .
+```
+
+Run the API and UI on port 8080 with JSON state persisted on a mounted host directory:
+
+```sh
+mkdir -p ./nullcloud-data
+# The distroless image runs as UID/GID 65532 (nonroot).
+sudo chown 65532:65532 ./nullcloud-data
+docker run --rm -p 8080:8080 \\
+  -v "$(pwd)/nullcloud-data:/data" \\
+  nullcloud-backend:local
+```
+
+The image exposes port `8080`, listens on all container interfaces, and defaults to `/data/store.json` for persistence. Mount a writable volume at `/data`; the container runs as a non-root user. The API is available under `/v1` and the UI under `/ui`. Override the default flags by supplying arguments after the image name (for example, `--port 9090`).
+
 ## Build
 
 ```sh
