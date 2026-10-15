@@ -160,12 +160,12 @@ Run the API and UI on port 8080 with JSON state persisted on a mounted host dire
 mkdir -p ./nullcloud-data
 # The distroless image runs as UID/GID 65532 (nonroot).
 sudo chown 65532:65532 ./nullcloud-data
-docker run --rm -p 8080:8080 \\
-  -v "$(pwd)/nullcloud-data:/data" \\
+docker run --rm -p 8080:8080 \
+  -v "$(pwd)/nullcloud-data:/data" \
   nullcloud-backend:local
 ```
 
-The image exposes port `8080`, listens on all container interfaces, and defaults to `/data/store.json` for persistence. Mount a writable volume at `/data`; the container runs as a non-root user. The API is available under `/v1` and the UI under `/ui`. Override the default flags by supplying arguments after the image name (for example, `--port 9090`).
+The image exposes port `8080`, listens on all container interfaces, and defaults to `/data/store.json` for persistence. Docker-managed volumes at `/data` are writable by the non-root user. Bind-mounted host directories must be writable by UID/GID `65532`. The API is available under `/v1` and the UI under `/ui`. Override the default flags by supplying arguments after the image name (for example, `--port 9090`).
 
 ## Build
 
