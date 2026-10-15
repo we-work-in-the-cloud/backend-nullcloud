@@ -66,7 +66,7 @@ export function ResourceProvider({ isConnected, children }: { isConnected: boole
     if (isConnected) {
       refresh()
     }
-  }, [isConnected])
+  }, [isConnected, token])
 
   return (
     <ResourceContext.Provider
