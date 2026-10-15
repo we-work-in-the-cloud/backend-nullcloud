@@ -125,6 +125,18 @@ func (s *MemoryStore) RenameSubnet(_ context.Context, token, id, name string) er
 	return nil
 }
 
+func (s *MemoryStore) UpdateSubnetCIDR(_ context.Context, token, id, cidr string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.subnets[token][id]
+	if !ok {
+		return fmt.Errorf("Subnet %s not found", id)
+	}
+	v.CIDRBlock = cidr
+	s.subnets[token][id] = v
+	return nil
+}
+
 func (s *MemoryStore) CreateVSI(_ context.Context, token string, v model.VSI) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

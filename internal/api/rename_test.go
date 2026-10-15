@@ -79,6 +79,59 @@ func TestSubnet_Rename(t *testing.T) {
 	}
 }
 
+func TestSubnet_CIDRChange_RejectsInstanceOutsideNewRange(t *testing.T) {
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
+	defer srv.Close()
+	token := "tok"
+	resp := doRequest(t, "POST", srv.URL+"/v1/vpcs", token, `{"name":"vpc"}`)
+	mustStatus(t, resp, 201)
+	var vpc model.VPC
+	json.NewDecoder(resp.Body).Decode(&vpc)
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, `{"name":"sub","vpc":{"id":"`+vpc.ID+`"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`)
+	mustStatus(t, resp, 201)
+	var sub model.Subnet
+	json.NewDecoder(resp.Body).Decode(&sub)
+	resp = doRequest(t, "POST", srv.URL+"/v1/instances", token, `{"name":"vsi","subnet":{"id":"`+sub.ID+`"}}`)
+	mustStatus(t, resp, 201)
+	var vsi model.VSI
+	json.NewDecoder(resp.Body).Decode(&vsi)
+
+	resp = doRequest(t, "PATCH", srv.URL+"/v1/subnets/"+sub.ID, token, `{"cidr_block":"192.168.1.0/24"}`)
+	mustStatus(t, resp, 400)
+
+	resp = doRequest(t, "GET", srv.URL+"/v1/subnets/"+sub.ID, token, "")
+	mustStatus(t, resp, 200)
+	var unchanged model.Subnet
+	json.NewDecoder(resp.Body).Decode(&unchanged)
+	if unchanged.CIDRBlock != "10.0.0.0/24" {
+		t.Fatalf("CIDR changed despite existing instance %s with IP %s: %+v", vsi.ID, vsi.PrimaryIP, unchanged)
+	}
+}
+
+func TestSubnet_CIDRChange_AllowsRangeContainingInstances(t *testing.T) {
+	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
+	defer srv.Close()
+	token := "tok"
+	resp := doRequest(t, "POST", srv.URL+"/v1/vpcs", token, `{"name":"vpc"}`)
+	mustStatus(t, resp, 201)
+	var vpc model.VPC
+	json.NewDecoder(resp.Body).Decode(&vpc)
+	resp = doRequest(t, "POST", srv.URL+"/v1/subnets", token, `{"name":"sub","vpc":{"id":"`+vpc.ID+`"},"zone":"us-east-1","cidr_block":"10.0.0.0/24"}`)
+	mustStatus(t, resp, 201)
+	var sub model.Subnet
+	json.NewDecoder(resp.Body).Decode(&sub)
+	resp = doRequest(t, "POST", srv.URL+"/v1/instances", token, `{"name":"vsi","subnet":{"id":"`+sub.ID+`"}}`)
+	mustStatus(t, resp, 201)
+
+	resp = doRequest(t, "PATCH", srv.URL+"/v1/subnets/"+sub.ID, token, `{"cidr_block":"10.0.0.0/23"}`)
+	mustStatus(t, resp, 200)
+	var updated model.Subnet
+	json.NewDecoder(resp.Body).Decode(&updated)
+	if updated.CIDRBlock != "10.0.0.0/23" {
+		t.Fatalf("CIDR was not updated: %+v", updated)
+	}
+}
+
 func TestSubnet_Rename_NotFound(t *testing.T) {
 	srv := httptest.NewServer(api.NewServer(store.NewMemoryStore(), nil))
 	defer srv.Close()

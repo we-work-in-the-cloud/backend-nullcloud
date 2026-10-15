@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"time"
 
@@ -111,10 +112,11 @@ func updateSubnet(s store.Store) http.HandlerFunc {
 		token := tokenFromCtx(r.Context())
 		id := chi.URLParam(r, "id")
 		var req struct {
-			Name string `json:"name"`
+			Name      string `json:"name"`
+			CIDRBlock string `json:"cidr_block"`
 		}
-		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Name == "" {
-			writeError(w, http.StatusBadRequest, "bad_request", "name is required")
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil || (req.Name == "" && req.CIDRBlock == "") {
+			writeError(w, http.StatusBadRequest, "bad_request", "name or cidr_block is required")
 			return
 		}
 		sub, ok, err := s.GetSubnet(r.Context(), token, id)
@@ -126,11 +128,40 @@ func updateSubnet(s store.Store) http.HandlerFunc {
 			writeError(w, http.StatusNotFound, "not_found", "Subnet not found")
 			return
 		}
-		if err := s.RenameSubnet(r.Context(), token, id, req.Name); err != nil {
-			writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
-			return
+		cidrChanged := req.CIDRBlock != "" && req.CIDRBlock != sub.CIDRBlock
+		if cidrChanged {
+			_, newNetwork, parseErr := net.ParseCIDR(req.CIDRBlock)
+			if parseErr != nil {
+				writeError(w, http.StatusBadRequest, "bad_request", "invalid cidr_block")
+				return
+			}
+			vsis, listErr := s.ListVSIs(r.Context(), token)
+			if listErr != nil {
+				writeError(w, http.StatusInternalServerError, "internal_error", listErr.Error())
+				return
+			}
+			for _, vsi := range vsis {
+				ip := net.ParseIP(vsi.PrimaryIP)
+				if vsi.SubnetID == id && ip != nil && !newNetwork.Contains(ip) {
+					writeError(w, http.StatusBadRequest, "bad_request", fmt.Sprintf("cannot change subnet CIDR: instance %s IP %s is outside the new CIDR", vsi.ID, vsi.PrimaryIP))
+					return
+				}
+			}
 		}
-		sub.Name = req.Name
+		if req.Name != "" {
+			if err := s.RenameSubnet(r.Context(), token, id, req.Name); err != nil {
+				writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+				return
+			}
+			sub.Name = req.Name
+		}
+		if cidrChanged {
+			if err := s.UpdateSubnetCIDR(r.Context(), token, id, req.CIDRBlock); err != nil {
+				writeError(w, http.StatusInternalServerError, "internal_error", err.Error())
+				return
+			}
+			sub.CIDRBlock = req.CIDRBlock
+		}
 		writeJSON(w, http.StatusOK, sub)
 	}
 }

@@ -20,6 +20,7 @@ type Store interface {
 	ListSubnets(ctx context.Context, token string) ([]model.Subnet, error)
 	DeleteSubnet(ctx context.Context, token, id string) error
 	RenameSubnet(ctx context.Context, token, id, name string) error
+	UpdateSubnetCIDR(ctx context.Context, token, id, cidr string) error
 
 	CreateVSI(ctx context.Context, token string, v model.VSI) error
 	GetVSI(ctx context.Context, token, id string) (model.VSI, bool, error)

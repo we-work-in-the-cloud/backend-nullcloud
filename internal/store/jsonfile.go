@@ -177,6 +177,18 @@ func (s *JSONFileStore) RenameSubnet(_ context.Context, token, id, name string) 
 	return s.flush()
 }
 
+func (s *JSONFileStore) UpdateSubnetCIDR(_ context.Context, token, id, cidr string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	v, ok := s.data.Subnets[token][id]
+	if !ok {
+		return fmt.Errorf("Subnet %s not found", id)
+	}
+	v.CIDRBlock = cidr
+	s.data.Subnets[token][id] = v
+	return s.flush()
+}
+
 func (s *JSONFileStore) CreateVSI(_ context.Context, token string, v model.VSI) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()

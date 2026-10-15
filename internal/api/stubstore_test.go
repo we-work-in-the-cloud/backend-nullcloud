@@ -99,9 +99,9 @@ func newErrStore() *funcStore {
 		getDatabase: func(context.Context, string, string) (model.Database, bool, error) {
 			return model.Database{}, false, errStub
 		},
-		listDatabases:     func(context.Context, string) ([]model.Database, error) { return nil, errStub },
-		deleteDatabase:    func(context.Context, string, string) error { return errStub },
-		renameDatabase:    func(context.Context, string, string, string) error { return errStub },
+		listDatabases:      func(context.Context, string) ([]model.Database, error) { return nil, errStub },
+		deleteDatabase:     func(context.Context, string, string) error { return errStub },
+		renameDatabase:     func(context.Context, string, string, string) error { return errStub },
 		updateDatabasePlan: func(context.Context, string, string, string) error { return errStub },
 
 		createKubernetesCluster: func(context.Context, string, model.KubernetesCluster) error { return errStub },
@@ -144,6 +144,7 @@ func (s *funcStore) DeleteSubnet(ctx context.Context, token, id string) error {
 func (s *funcStore) RenameSubnet(ctx context.Context, token, id, name string) error {
 	return s.renameSubnet(ctx, token, id, name)
 }
+func (s *funcStore) UpdateSubnetCIDR(_ context.Context, _, _, _ string) error { return nil }
 func (s *funcStore) CreateVSI(ctx context.Context, token string, v model.VSI) error {
 	return s.createVSI(ctx, token, v)
 }
